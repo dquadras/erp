@@ -1,2 +1,2 @@
 # erp
-This repository could be used for personal use, for erp implementations using Totvs programming language.
+This repository could be used for personal use, i put some examples for demonstration of erp implementations using Totvs programming language and SQL.
