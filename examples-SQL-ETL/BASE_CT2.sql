@@ -1,0 +1,89 @@
+SELECT DISTINCT 
+B.CT2_FILIAL filial,
+B.CT2_DATA Data_Lcto,
+B.CT2_LOTE Numero_Lote,
+B.CT2_SBLOTE Sub_Lote,
+B.CT2_DOC Numero_Doc,
+B.CT2_LINHA Numero_Linha,
+B.CT2_MOEDLC Moeda_Lancto,
+B.CT2_DC Tipo_Lcto,
+''  Cta_Debito,
+B.CT2_CREDIT Cta_Credito,
+B.CT2_VALOR Valor,
+'CREDITO' classificacao,
+rtrim(ltrim(CT2_HIST))  Hist_Lanc_Completo,
+B.CT2_CCD C_Custo_Deb,
+B.CT2_CCC C_Custo_Crd,
+B.CT2_ITEMD Item_Conta_D,
+B.CT2_ITEMC Item_Conta_C,
+B.CT2_CLVLDB Cod_Cl_Val_D,
+B.CT2_CLVLCR Cod_Cl_Val_C,
+B.CT2_ATIVDE Ativ_Deb,
+B.CT2_ATIVCR Ativ_Crd,
+B.CT2_EMPORI Empresa_Orig,
+B.CT2_FILORI Filial_Orig,
+B.CT2_INTERC Intercompany,
+B.CT2_IDENTC Ident_IntCp,
+B.CT2_TPSALD Tipo_do_Sld,
+B.CT2_ORIGEM Origem,
+B.CT2_ROTINA Rotina,
+B.CT2_AT01DB Ativ_01_DB,
+B.CT2_AT01CR Ativ_01_CR,
+B.CT2_AT02DB Ativ_02_DB,
+B.CT2_AT02CR Ativ_02_CR,
+B.CT2_AT03DB Ativ_03_DB,
+B.CT2_AT03CR Ativ_03_CR,
+B.CT2_AT04DB Ativ_04_DB,
+B.CT2_AT04CR Ativ_04_CR
+FROM CT2010 B 
+WHERE 
+B.CT2_DC <> '4' AND
+B.D_E_L_E_T_ = '' AND 
+B.CT2_CREDIT <> '' AND
+B.CT2_DATA BETWEEN '20240101' AND '20240131' AND
+B.CT2_LOTE = '008810'
+UNION ALL 
+SELECT DISTINCT 
+B.CT2_FILIAL filial,
+B.CT2_DATA Data_Lcto,
+B.CT2_LOTE Numero_Lote,
+B.CT2_SBLOTE Sub_Lote,
+B.CT2_DOC Numero_Doc,
+B.CT2_LINHA Numero_Linha,
+B.CT2_MOEDLC Moeda_Lancto,
+B.CT2_DC Tipo_Lcto,
+B.CT2_DEBITO Cta_Debito,
+'' Cta_Credito,
+B.CT2_VALOR Valor,
+'DEBITO' classificacao,
+rtrim(ltrim(CT2_HIST))  Hist_Lanc_Completo,
+B.CT2_CCD C_Custo_Deb,
+B.CT2_CCC C_Custo_Crd,
+B.CT2_ITEMD Item_Conta_D,
+B.CT2_ITEMC Item_Conta_C,
+B.CT2_CLVLDB Cod_Cl_Val_D,
+B.CT2_CLVLCR Cod_Cl_Val_C,
+B.CT2_ATIVDE Ativ_Deb,
+B.CT2_ATIVCR Ativ_Crd,
+B.CT2_EMPORI Empresa_Orig,
+B.CT2_FILORI Filial_Orig,
+B.CT2_INTERC Intercompany,
+B.CT2_IDENTC Ident_IntCp,
+B.CT2_TPSALD Tipo_do_Sld,
+B.CT2_ORIGEM Origem,
+B.CT2_ROTINA Rotina,
+B.CT2_AT01DB Ativ_01_DB,
+B.CT2_AT01CR Ativ_01_CR,
+B.CT2_AT02DB Ativ_02_DB,
+B.CT2_AT02CR Ativ_02_CR,
+B.CT2_AT03DB Ativ_03_DB,
+B.CT2_AT03CR Ativ_03_CR,
+B.CT2_AT04DB Ativ_04_DB,
+B.CT2_AT04CR Ativ_04_CR
+FROM CT2010 B 
+WHERE 
+B.CT2_DC <> '4' AND
+B.D_E_L_E_T_ = '' AND 
+B.CT2_DEBITO <> '' AND
+B.CT2_DATA BETWEEN '20240101' AND '20240131' AND
+B.CT2_LOTE = '008810'

@@ -1,0 +1,796 @@
+#INCLUDE 'protheus.ch'
+#INCLUDE 'TOTVS.ch'
+#INCLUDE 'RESTFUL.ch' 
+#INCLUDE 'FWMVCDEF.CH'
+#include "tbiconn.ch"
+
+
+// ----------------------------------------------------------------------
+/*/{Protheus.doc} restexemplo
+Consulta a API enotas para gravação de pre-nota
+
+@param oGetCode 
+
+@author David Ferreira Quadras
+@since 20/10/2021
+@version 1.0
+/*/
+// ----------------------------------------------------------------------
+user function wsalc001()
+Local cToken   := ""
+Local aNotas   := {}
+Local cDataini := ""
+Local cDatafim := ""
+Local cEmpID   := alltrim(GetMv( "MV_EMPIDWS"))
+
+Private cWsopt 
+
+  PERGUNTE("WSALC01",.T.)
+
+  cDataini := SUBSTR(dtos(MV_PAR01),1,4)+"-"+SUBSTR(dtos(MV_PAR01),5,2)+"-"+SUBSTR(dtos(MV_PAR01),7,2)
+  cDatafim := SUBSTR(dtos(MV_PAR02),1,4)+"-"+SUBSTR(dtos(MV_PAR02),5,2)+"-"+SUBSTR(dtos(MV_PAR02),7,2)
+
+  cWsopt := MV_PAR03
+
+  IF cWsopt == 1
+      Processa( {|| wsalc01(cToken,aNotas,cEmpID,cDataini,cDatafim) }, "Aguarde...", "Atualizando registros de nota...",.F.)
+  else
+      Processa( {|| wsalc03(cToken,aNotas,cEmpID,cDataini,cDatafim) }, "Aguarde...", "Atualizando registros de nota...",.F.)
+  endif   
+
+
+  //Abertura do Browse
+  U_COMLC01_MVC()
+
+Return
+
+//Leitura da Api de integração enotas
+Static function wsalc01(cToken,aNotas,cEmpID,cDataini,cDatafim)
+    local cURL 
+    local cPath 
+    local oRest as object
+    Local oJson
+    Local cJson
+    Local cRet
+    Local aHeader:={}
+    Local cGetParam := ""
+    Local i
+    Local cCodnfs := ""
+    Local cCnpj := ""
+    Local cCodiss := ""
+    Local nValor := " "
+    Local nImp := ""
+    Local dEmissa
+    Local dCompr
+   
+    //cEmpid := "805eeac1-68ba-4584-aa90-dcd925ad0700"    
+    cGetParam = "datainicial="+cDataini+"&dataFinal="+cDatafim+"&continuationToken="+cToken
+
+    cUrl := "https://api2.enotasgw.com.br"
+    cPath := "/v3/empresas/"+cEmpid+"/nota-tomada/nfs-e/consulta?"
+
+    Aadd(aHeader, "Authorization: Basic NjYyODZlMjUtNjdiYy00OTEwLWI3ZWUtOTljMzI5MTMwNzAw")
+    Aadd(aHeader, "Accept: application/json")
+
+
+    oRest := FWRest():new(cURL+cPath+cGetParam)
+
+    cPath := ""
+    oRest:SetPath(cPath)
+
+    If (oRest:GET(aHeader))
+
+        cJson := oRest:GETRESULT()
+        oJson := JsonObject():New()
+        cRet := oJson:FromJson(cJson)      
+
+        if ValType(cret) == "U"
+          Conout("JsonObject populado com sucesso")
+        else
+          Conout("Falha ao popular JsonObject. Erro: " + cRet)
+          return
+        endif
+
+    Else 
+
+       conout(oRest:GetLastError())
+
+    ENDIF
+
+
+
+    For i:= 1 to Len(oJson["records"])
+
+        cCodnfs := oJson["records"][i]["numero"]
+        cCodiss := oJson["records"][i]["servico"]["codigoServicoMunicipio"]
+        nValor  := oJson["records"][i]["valorTotal"] 
+        nImp    := oJson["records"][i]["valorCofins"] + oJson["records"][i]["valorCsll"] + oJson["records"][i]["valorInss"] + oJson["records"][i]["valorIr"] + oJson["records"][i]["valorPis"] + oJson["records"][i]["valorIss"]  
+        cCnpj   := oJson["records"][i]["empresa"]["cnpj"]
+        dEmissa := stod(strtran(substring(oJson["records"][I]["dataAutorizacao"],1,10),"-",""))
+        
+        IF oJson["records"][I]["dataCompetenciaRps"] == nil
+          dCompr := stod(strtran(substring(oJson["records"][I]["dataAutorizacao"],1,10),"-",""))
+        ELSE
+          dCompr := stod(strtran(substring(oJson["records"][I]["dataCompetenciaRps"],1,10),"-",""))
+        ENDIF
+          
+        AAdd(aNotas,{cCodnfs,cCodiss,nValor,cCnpj,dEmissa,nImp,dCompr})
+
+    Next i
+
+    //Grava registros que serão processados na pré-nota
+    if !empty(oJson["continuationToken"])
+       cToken := oJson["continuationToken"]
+       wsalc01(cToken,aNotas,cEmpID,cDataini,cDatafim)
+    else
+       wsalc02(aNotas)
+    ENDIF
+
+    freeObj(oJson)
+
+    freeObj(oRest)
+
+return
+
+//Processamento de pré-nota de servico
+Static function wsalc02(aNotas)
+
+  Local i := 1
+  Local cProd := ""
+  Local cTes := ""
+  Local nOpc := 3
+  Local cCodfor := ""
+  Local cLoja := ""
+  Local cMensagem := ""
+  Local cProcessa := "2"
+  Local cUm := ""
+  Local lErro :=  .F. 
+  Local cNatur := ""
+  Local cCond := ""
+  Local cNomf := ""
+  Local cNomp := ""
+  Local cDel := ""
+  Local cDoc := "" 
+  Local cSer := "" 
+  Local cEmis := ""
+  Local cCodiss := ""
+  Local nValor := 0   
+  Local dRps := ""    
+  Local nImp := 0
+  Local nValliq := 0
+  Local cQryrda := ""
+  Local cStat := ""
+
+
+  Private aCabec      := {}
+  Private aItens      := {}
+  Private aLinha      := {}
+  Private lMsErroAuto := .F.
+  
+  cDel := " UPDATE "+RetSqlName('ZA1')+" SET D_E_L_E_T_ = '*' WHERE ZA1_PROC = '2' or ZA1_PROC = '3'  "
+  nStatus := TCSqlExec(cDel)
+
+  if (nStatus < 0)
+      alert("TCSQLError() " + TCSQLError())
+  endif
+
+  For i := 1 to len(aNotas)
+
+      aCabec := {}
+      aLinha := {}
+      aItens := {}
+      lErro :=  .F. 
+      cMensagem := ""
+      cProd := ""
+      cNomp := ""
+      cNatur := ""
+      cCond := ""
+      cCodfor := ""
+      cLoja := ""
+      cNomf := ""
+      cTes := ""
+      cUm := ""
+      cErro := ""
+      cDoc := "" 
+      cSer := "" 
+      cEmis := ""
+      cCodiss := ""
+      nValor := 0   
+      dRps := ""    
+      nImp := 0
+      nValliq := 0
+      lNf := .F.
+
+      cQuery := ""
+      cQuery := "select SA2.A2_COD,SA2.A2_LOJA,SA2.A2_NATUREZ,SA2.A2_COND,SA2.A2_NOME from "+RetSqlName("SA2")+" SA2 WHERE SA2.A2_CGC = '"+AllTrim(aNotas[i][4])+"' AND SA2.D_E_L_E_T_ = ''"
+      cQuery := ChangeQuery(cQuery)
+
+      dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"Tsa2",.T.,.T.)
+
+      nStatus := TCSqlExec(cQuery)
+
+      if (nStatus < 0)
+        alert("TCSQLError() " + TCSQLError())
+      endif
+
+      dbSelectArea("Tsa2")
+      While Tsa2->(!Eof())
+         
+        cCodfor := Tsa2->A2_COD
+        cLoja := Tsa2->A2_LOJA
+        cNatur := Tsa2->A2_NATUREZ
+        cCond := Tsa2->A2_COND
+        cNomf := Tsa2->A2_NOME
+        
+        Tsa2->(dbskip())
+      ENDDO
+      dbCloseArea()
+
+      if cCodfor == ""
+        cMensagem := "Fornecedor não encontrado!"  
+        lErro :=  .T. 
+        cProcessa := "2"
+      Endif
+
+      If cCodfor <> '' .and. aNotas[i][2] <> nil
+        cQuery := ""
+        cQuery := "select SB1.B1_COD,B1_DESC,SB1.B1_TE,SB1.B1_UM from "+RetSqlName("SA5")+" SA5 JOIN "+RetSqlName("SB1")+" SB1 ON SA5.A5_PRODUTO = SB1.B1_COD WHERE SA5.A5_FORNECE = '"+cCodfor+"' AND SB1.B1_CODISS = '"+aNotas[i][2]+"' AND SA5.D_E_L_E_T_ = ''"
+        cQuery := ChangeQuery(cQuery)
+        dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"Tsc5",.T.,.T.)
+      
+        nStatus := TCSqlExec(cQuery)
+
+        if (nStatus < 0)
+          alert("TCSQLError() " + TCSQLError())
+        endif
+
+        dbSelectArea("Tsc5")
+        While Tsc5->(!Eof())
+
+          cProd := Tsc5->B1_COD
+          cUm := Tsc5->B1_UM
+          cNomp := Tsc5->B1_DESC
+
+          Tsc5->(dbskip())
+        ENDDO
+        dbCloseArea()
+      ENDIF
+
+      IF empty(cProd)
+          cMensagem += " Amarração Produto X Fornecedor não encontrado!"
+          lErro := .T.
+          cProcessa := "2"
+      ENDIF
+
+      cDoc  := PADL(aNotas[i][1],9,"0") 
+      cSer  := "1" 
+      cEmis := aNotas[i][5]
+      cCodiss := aNotas[i][2]
+      nValor := aNotas[i][3]   
+      dRps := aNotas[i][7]    
+      nImp := aNotas[i][6]
+      nValliq := aNotas[i][3] - aNotas[i][6]
+
+      cQuery := "SELECT F1_DOC,F1_SERIE,F1_EMISSAO,F1_VALBRUT,F1_FORNECE,F1_DTDIGIT,F1_IRRF,F1_ISS,F1_FORNECE,F1_XNOMFOR,F1_XNOMFOR,F1_DTDIGIT FROM "+RetSqlName("SF1")+" WHERE F1_DOC = '"+PADL(aNotas[i][1],9,"0")+"' AND F1_SERIE = '1' AND F1_FORNECE = '"+cCodfor+"' AND D_E_L_E_T_ = ''"
+      cQuery := ChangeQuery(cQuery)
+      dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"Tsf1",.T.,.T.)
+    
+      nStatus := TCSqlExec(cQuery)
+
+      if (nStatus < 0)
+        alert("TCSQLError() " + TCSQLError())
+      endif
+
+      dbSelectArea("Tsf1")
+      While Tsf1->(!Eof())
+
+        lNf := .T. 
+        cProcessa := "1"
+        cMensagem := "Registro processado com sucesso!"
+
+        Tsf1->(dbskip())
+      ENDDO
+      dbCloseArea()
+
+      //Validacao de notas de fornecedores RDA - 19/10/2022
+      cQryrda := "SELECT BAU_CODIGO FROM "+RetSqlName("BAU")+" BAU JOIN "+RetSqlName("SA2")+" SA2 ON BAU.BAU_CPFCGC = SA2.A2_CGC WHERE BAU.BAU_CPFCGC = '"+AllTrim(aNotas[i][4])+"' AND BAU.D_E_L_E_T_ = ''"
+      cQryrda := ChangeQuery(cQryrda)
+      dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQryrda),"TBAU",.T.,.T.)
+
+      nStatus := TCSqlExec(cQryrda)
+
+      if (nStatus < 0)
+         alert("TCSQLError() " + TCSQLError())
+      endif
+
+      dbSelectArea("TBAU")
+      While TBAU->(!Eof())
+
+        cStat := "B"
+
+        TBAU->(dbskip())
+      ENDDO
+      dbCloseArea()
+
+
+      IF !lErro .and. !lNF
+
+          aAdd(aCabec,{'F1_TIPO','N',NIL})
+          aAdd(aCabec,{'F1_FORMUL','N',NIL})
+          aAdd(aCabec,{'F1_DOC',cDoc,NIL})
+          aAdd(aCabec,{"F1_SERIE",cSer,NIL})
+          aAdd(aCabec,{"F1_EMISSAO",cEmis,NIL})
+          aAdd(aCabec,{'F1_FORNECE',cCodfor,NIL})
+          aAdd(aCabec,{'F1_LOJA',cLoja,NIL})
+          aAdd(aCabec,{"F1_ESPECIE","NF",NIL})
+          aAdd(aCabec,{"F1_COND",cCond,NIL})
+          aAdd(aCabec,{"F1_STATUS",cStat,NIL})
+          //aAdd(aCabec,{"F1_FILORIG",cFilAnt,NIL})
+                
+          aAdd(aItens,{'D1_COD',cProd,NIL})
+          aAdd(aItens,{'D1_UM',cUm,NIL})      
+          aAdd(aItens,{"D1_QUANT",1,Nil})
+          aAdd(aItens,{"D1_VUNIT",nValor,Nil})
+         
+          aAdd(aLinha,aItens)
+
+          MSExecAuto({|x,y,z,a,b| MATA140(x,y,z,a,b)}, aCabec, aLinha, nOpc,,)
+                
+          If lMsErroAuto
+              cProcessa := "2"
+              IF cMensagem == ""
+                cMensagem := "Erro indeterminado, entre em contato com administrador do sistema!"
+              Endif
+          Else
+              cProcessa := "1"
+              cMensagem := "Registro processado com sucesso!"
+          EndIf
+          
+      ENDIF
+
+     
+      DbSelectArea("ZA1")
+      DbSetOrder(1)
+
+      RECLOCK("ZA1",.T.)
+        ZA1->ZA1_FILIAL := xFilial()
+        ZA1->ZA1_DOC := cDoc
+        ZA1->ZA1_SERIE := cSer
+        ZA1->ZA1_EMISSA := aNotas[i][5]
+        ZA1->ZA1_FORNEC := cCodfor
+        ZA1->ZA1_INTMSG := cMensagem
+        ZA1->ZA1_CODISS := cCodiss
+        ZA1->ZA1_VALOR := nValor
+        ZA1->ZA1_PROC := cProcessa
+        ZA1->ZA1_NOMF := cNomf
+        ZA1->ZA1_DRPS := aNotas[i][7]
+        ZA1->ZA1_PROD := cProd
+        ZA1->ZA1_NPROD := cNomp
+        ZA1->ZA1_NATURE := cNatur
+        ZA1->ZA1_CONDPG := cCond
+        ZA1->ZA1_IMPOST := nImp
+        ZA1->ZA1_VLRLIQ := nValor - nImp
+
+      ZA1->(MSUNLOCK())
+      
+
+  Next i
+
+return
+
+//Tela MVC ZA1
+//-------------------------------------------------------------------
+User Function COMLC01_MVC()
+Local oBrowse
+
+//Setando o nome da função, para a função customizada
+SetFunName("COMLC01_MVC")
+
+oBrowse := FWMBrowse():New()
+oBrowse:SetAlias('ZA1')
+oBrowse:SetDescription('Processamento de notas enotas')
+oBrowse:AddLegend( "ZA1_PROC=='1'", "GREEN", "Processado"      )
+oBrowse:AddLegend( "ZA1_PROC=='2'", "RED"  , "Erro" )
+oBrowse:AddLegend( "ZA1_PROC=='3'", "BLUE"  , "NF MANUAL" )
+oBrowse:AddLegend( "ZA1_PROC=='4'", "YELLOW"  , "Aguardando liberacao-EITA" )
+
+oBrowse:Activate()
+
+Return NIL
+
+//-------------------------------------------------------------------
+Static Function MenuDef()
+Local aRotina := {}
+
+ADD OPTION aRotina TITLE 'Visualizar' ACTION 'VIEWDEF.COMLC01_MVC' OPERATION 2 ACCESS 0
+
+Return aRotina
+
+
+//-------------------------------------------------------------------
+Static Function ModelDef()
+// Cria a estrutura a ser usada no Modelo de Dados
+Local oStruZA1 := FWFormStruct( 1, 'ZA1', /*bAvalCampo*/,/*lViewUsado*/ )
+Local oModel
+
+
+// Cria o objeto do Modelo de Dados
+oModel := MPFormModel():New('COMLC11M', /*bPreValidacao*/, /*bPosValidacao*/, /*bCommit*/, /*bCancel*/ )
+
+// Adiciona ao modelo uma estrutura de formulário de edição por campo
+oModel:AddFields( 'ZA1MASTER', /*cOwner*/, oStruZA1, /*bPreValidacao*/, /*bPosValidacao*/, /*bCarga*/ )
+
+// Adiciona a descricao do Modelo de Dados
+oModel:SetDescription( 'Processamento pre-nota' )
+
+// Adiciona a descricao do Componente do Modelo de Dados
+oModel:GetModel( 'ZA1MASTER' ):SetDescription( 'Processamento pre-nota' )
+
+
+Return oModel
+
+
+//-------------------------------------------------------------------
+Static Function ViewDef()
+// Cria um objeto de Modelo de Dados baseado no ModelDef do fonte informado
+Local oModel   := FWLoadModel( 'COMLC01_MVC' )
+// Cria a estrutura a ser usada na View
+Local oStruZA1 := FWFormStruct( 2, 'ZA1' )
+//Local oStruZA0 := FWFormStruct( 2, 'ZA0', { |cCampo| COMP11STRU(cCampo) } )
+Local oView
+
+// Cria o objeto de View
+oView := FWFormView():New()
+
+// Define qual o Modelo de dados será utilizado
+oView:SetModel( oModel )
+
+//Adiciona no nosso View um controle do tipo FormFields(antiga enchoice)
+oView:AddField( 'VIEW_ZA1', oStruZA1, 'ZA1MASTER' )
+
+// Criar um "box" horizontal para receber algum elemento da view
+oView:CreateHorizontalBox( 'TELA' , 100 )
+
+// Relaciona o ID da View com o "box" para exibicao
+oView:SetOwnerView( 'VIEW_ZA1', 'TELA' )
+
+Return oView
+
+//Função de chamada de integração do web-service via schedulle 
+User Function schalc01()
+Local cToken := ""
+Local aNotas:={}
+Local cDataini := ""
+Local cDatafim := ""
+Local cEmpID := ""
+
+cDataini := cDataini := SUBSTR(dtos(date()),1,4)+"-"+SUBSTR(dtos(date()),5,2)+"-"+"01"
+cDatafim := SUBSTR(dtos(date()),1,4)+"-"+SUBSTR(dtos(date()),5,2)+"-"+SUBSTR(dtos(date()),7,2)
+
+cEmpID := "805eeac1-68ba-4584-aa90-dcd925ad0700"
+
+PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01' USER 'Administrador' PASSWORD '' TABLES 'SE2,ZA1,SF1,SD1,SA2' MODULO "COM"
+
+wsalc01(cToken,aNotas,cEmpID,cDataini,cDatafim)
+
+RETURN
+
+
+//Processamento das Danfes
+Static function wsalc03(cToken,aNotas,cEmpID,cDataini,cDatafim)
+
+    local cURL 
+    local cPath := ""
+    local oRest as object
+    Local oJson
+    Local cJson
+    Local cRet
+    Local aHeader:={}
+    Local cGetParam := ""
+    Local i
+    Local j
+    Local cCodnfs := ""
+    Local cCnpj := ""
+    Local nValor := 0
+    Local dEmissa
+    Local dCompr
+    Local cLink := ""
+   
+    //cEmpid := "805eeac1-68ba-4584-aa90-dcd925ad0700"    
+    cGetParam = "datainicial="+cDataini+"&dataFinal="+cDatafim+"&continuationToken="+cToken
+
+    cUrl := "https://api2.enotasgw.com.br"
+    cPath := "/v3/empresas/"+cEmpid+"/nota-tomada/nf-e/consulta?"
+    
+
+    Aadd(aHeader, "Authorization: Basic NjYyODZlMjUtNjdiYy00OTEwLWI3ZWUtOTljMzI5MTMwNzAw")
+    Aadd(aHeader, "Accept: application/json")
+
+
+    oRest := FWRest():new(cURL+cPath+cGetParam)
+
+    cPath := ""
+    oRest:SetPath(cPath)
+
+    If (oRest:GET(aHeader))
+
+        cJson := oRest:GETRESULT()
+        oJson := JsonObject():New()
+        cRet := oJson:FromJson(cJson)      
+
+        if ValType(cret) == "U"
+          Conout("JsonObject populado com sucesso")
+        else
+          Conout("Falha ao popular JsonObject. Erro: " + cRet)
+          return
+        endif
+
+    Else 
+
+       conout(oRest:GetLastError())
+
+    ENDIF
+
+
+
+    For i:= 1 to Len(oJson["records"])
+
+        if oJson["records"][i]["tipo"] == "NF-e"
+
+          if oJson["records"][i]["status"] == "Autorizada"
+
+              cCodnfs := oJson["records"][i]["numero"]
+              nValor := 0
+              
+              for j:= 1 to len(oJson["records"][i]["itens"]) 
+                  nValor  := nValor + oJson["records"][i]["itens"][j]["valorTotal"]
+              next j
+
+              cCnpj   := oJson["records"][i]["empresa"]["cnpj"]
+              dEmissa := stod(strtran(substring(oJson["records"][I]["dataAutorizacao"],1,10),"-",""))
+              dCompr := stod(strtran(substring(oJson["records"][I]["dataAutorizacao"],1,10),"-",""))
+              cLink  :=  oJson["records"][i]["linkDownloadPDF"]
+                
+              AAdd(aNotas,{cCodnfs,nValor,cCnpj,dEmissa,dCompr,cLink})
+
+          ENDIF  
+
+        Else  
+
+        
+        ENDIF
+
+    Next i
+
+    //Grava registros que serão processados na pré-nota
+    if !empty(oJson["continuationToken"])
+       cToken := oJson["continuationToken"]
+       wsalc03(cToken,aNotas,cEmpID,cDataini,cDatafim)
+    else
+       wsalc04(aNotas)
+    ENDIF
+
+    freeObj(oJson)
+
+    freeObj(oRest)
+
+RETURN
+
+
+//Processamento de pré-nota de produto
+Static function wsalc04(aNotas)
+
+  Local i := 1
+  Local cProd := ""
+  Local cTes := ""
+  Local nOpc := 3
+  Local cCodfor := ""
+  Local cLoja := ""
+  Local cMensagem := ""
+  Local cProcessa := "2"
+  Local cUm := ""
+  Local lErro :=  .F. 
+  Local cNatur := ""
+  Local cCond := ""
+  Local cNomf := ""
+  Local cNomp := ""
+  Local cDel := ""
+  Local cDoc := "" 
+  Local cSer := "" 
+  Local cEmis := ""
+  Local nValor := 0   
+  Local dRps := ""    
+  Local nImp := 0
+  Local nValliq := 0
+  Local cPatch := GetNewPar("AL_ENDERRO","C:/Temp/")
+
+
+  Private aCabec      := {}
+  Private aItens      := {}
+  Private aLinha      := {}
+  Private lMsErroAuto := .F.
+  
+  cDel := " UPDATE "+RetSqlName('ZA1')+" SET D_E_L_E_T_ = '*' WHERE ZA1_PROC = '2' or ZA1_PROC = '3'  "
+  nStatus := TCSqlExec(cDel)
+
+  if (nStatus < 0)
+      alert("TCSQLError() " + TCSQLError())
+  endif
+
+  For i := 1 to len(aNotas)
+
+      aCabec := {}
+      aLinha := {}
+      aItens := {}
+      lErro :=  .F. 
+      cMensagem := ""
+      cProd := ""
+      cNomp := ""
+      cNatur := ""
+      cCond := ""
+      cCodfor := ""
+      cLoja := ""
+      cNomf := ""
+      cTes := ""
+      cUm := ""
+      cErro := ""
+      cDoc := "" 
+      cSer := "" 
+      cEmis := ""
+      nValor := 0   
+      dRps := ""    
+      nImp := 0
+      nValliq := 0
+      lNf := .F.
+
+      cQuery := ""
+      cQuery := "select SA2.A2_COD,SA2.A2_LOJA,SA2.A2_NATUREZ,SA2.A2_COND,SA2.A2_NOME from "+RetSqlName("SA2")+" SA2 WHERE SA2.A2_CGC = '"+AllTrim(aNotas[i][3])+"' AND SA2.D_E_L_E_T_ = ''"
+      cQuery := ChangeQuery(cQuery)
+
+      dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"Tsa2",.T.,.T.)
+
+      nStatus := TCSqlExec(cQuery)
+
+      if (nStatus < 0)
+        alert("TCSQLError() " + TCSQLError())
+      endif
+
+      dbSelectArea("Tsa2")
+      While Tsa2->(!Eof())
+         
+        cCodfor := Tsa2->A2_COD
+        cLoja := Tsa2->A2_LOJA
+        cNatur := Tsa2->A2_NATUREZ
+        cCond := Tsa2->A2_COND
+        cNomf := Tsa2->A2_NOME
+        
+        Tsa2->(dbskip())
+      ENDDO
+       dbCloseArea()
+
+      if cCodfor == ""
+        cMensagem := "Fornecedor não encontrado!"  
+        lErro :=  .T. 
+        cProcessa := "2"
+      Endif
+
+      cQuery := ""
+      cQuery := "select SB1.B1_COD,B1_DESC,SB1.B1_TE,SB1.B1_UM from "+RetSqlName("SA5")+" SA5 JOIN "+RetSqlName("SB1")+" SB1 ON SA5.A5_PRODUTO = SB1.B1_COD WHERE SA5.A5_FORNECE = '"+cCodfor+"' AND SB1.B1_CODISS = '' AND SA5.D_E_L_E_T_ = '' "
+      cQuery := ChangeQuery(cQuery)
+      dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"Tsc5",.T.,.T.)
+    
+      nStatus := TCSqlExec(cQuery)
+
+      if (nStatus < 0)
+        alert("TCSQLError() " + TCSQLError())
+      endif
+
+      dbSelectArea("Tsc5")
+      While Tsc5->(!Eof())
+
+        cProd := Tsc5->B1_COD
+        cUm := Tsc5->B1_UM
+        cNomp := Tsc5->B1_DESC
+
+        Tsc5->(dbskip())
+      ENDDO
+      dbCloseArea()
+
+      IF empty(cProd)
+          cMensagem += " Amarração Produto X Fornecedor não encontrado!"
+          lErro := .T.
+          cProcessa := "2"
+      ENDIF
+
+      cDoc := PADL(aNotas[i][1],9,"0") 
+      cSer := "1" 
+      cEmis := aNotas[i][4]
+      nValor := aNotas[i][2]   
+      dRps := aNotas[i][4]    
+      nValliq := aNotas[i][2]
+
+      cQuery := "SELECT F1_DOC,F1_SERIE,F1_EMISSAO,F1_VALBRUT,F1_FORNECE,F1_DTDIGIT,F1_IRRF,F1_ISS,F1_FORNECE,F1_XNOMFOR,F1_XNOMFOR,F1_DTDIGIT FROM "+RetSqlName("SF1")+" WHERE F1_DOC = '"+PADL(aNotas[i][1],9,"0")+"' AND F1_SERIE = '1' AND F1_FORNECE = '"+cCodfor+"' AND D_E_L_E_T_ = ''"
+      cQuery := ChangeQuery(cQuery)
+      dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"Tsf1",.T.,.T.)
+    
+      nStatus := TCSqlExec(cQuery)
+
+      if (nStatus < 0)
+        alert("TCSQLError() " + TCSQLError())
+      endif
+
+      dbSelectArea("Tsf1")
+      While Tsf1->(!Eof())
+
+        lNf := .T.
+        cProcessa := "1"
+        cMensagem := "Registro processado com sucesso!"
+
+        Tsf1->(dbskip())
+      ENDDO
+      dbCloseArea()
+
+      IF !lErro .and. !lNF
+
+          aAdd(aCabec,{'F1_TIPO','N',NIL})
+          aAdd(aCabec,{'F1_FORMUL','N',NIL})
+          aAdd(aCabec,{'F1_DOC',cDoc,NIL})
+          aAdd(aCabec,{"F1_SERIE",cSer,NIL})
+          aAdd(aCabec,{"F1_EMISSAO",cEmis,NIL})
+          aAdd(aCabec,{'F1_FORNECE',cCodfor,NIL})
+          aAdd(aCabec,{'F1_LOJA',cLoja,NIL})
+          aAdd(aCabec,{"F1_ESPECIE","NF",NIL})
+          aAdd(aCabec,{"F1_COND",cCond,NIL})
+          aAdd(aCabec,{"F1_STATUS",'',NIL})
+        //aAdd(aCabec,{"F1_FILORIG",cFilAnt,NIL})
+                
+          aAdd(aItens,{'D1_COD',cProd,NIL})
+          aAdd(aItens,{'D1_UM',cUm,NIL})      
+          aAdd(aItens,{"D1_QUANT",1,Nil})
+          aAdd(aItens,{"D1_VUNIT",nValor,Nil})
+
+          aAdd(aLinha,aItens)
+
+          MSExecAuto({|x,y,z,a,b| MATA140(x,y,z,a,b)}, aCabec, aLinha, nOpc,,)
+                
+          If lMsErroAuto
+              cProcessa := "2"
+              IF cMensagem == ""
+                cMensagem := "Erro indeterminado, entre em contato com administrador do sistema!"
+              Endif
+              MemoWrite(cPatch+cDoc+".txt",mostraerro()) 
+          Else
+              cProcessa := "1"
+              cMensagem := "Registro processado com sucesso!"
+          EndIf
+          
+      ENDIF
+
+     
+      DbSelectArea("ZA1")
+      DbSetOrder(1)
+
+      RECLOCK("ZA1",.T.)
+        ZA1->ZA1_FILIAL := cFilAnt
+        ZA1->ZA1_DOC := cDoc
+        ZA1->ZA1_SERIE := cSer
+        ZA1->ZA1_EMISSA := aNotas[i][4]
+        ZA1->ZA1_FORNEC := cCodfor
+        ZA1->ZA1_INTMSG := cMensagem
+        ZA1->ZA1_VALOR := nValor
+        ZA1->ZA1_PROC := cProcessa
+        ZA1->ZA1_NOMF := cNomf
+        ZA1->ZA1_DRPS := aNotas[i][4]
+        ZA1->ZA1_PROD := cProd
+        ZA1->ZA1_NPROD := cNomp
+        ZA1->ZA1_NATURE := cNatur
+        ZA1->ZA1_CONDPG := cCond
+        ZA1->ZA1_VLRLIQ := nValor
+        ZA1->ZA1_LINK := aNotas[i][6]
+
+      ZA1->(MSUNLOCK())
+      
+
+  Next i
+
+return

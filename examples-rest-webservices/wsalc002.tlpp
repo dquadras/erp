@@ -1,0 +1,127 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+#INCLUDE 'protheus.ch'
+#INCLUDE 'TOTVS.ch'
+#INCLUDE 'RESTFUL.ch' 
+#INCLUDE 'FWMVCDEF.CH'
+#include "tbiconn.ch"
+
+// ----------------------------------------------------------------------
+/*/{Protheus.doc} 
+API GET para retornar os dados de pagamento de notas fiscais.
+
+@param dataini | datafim 
+
+@author David Ferreira Quadras
+@since 13/10/2022
+@version 1.0
+/*/
+// ----------------------------------------------------------------------
+
+@Get("alice/getpaymentinfo/querystring")
+user function wsalc002()
+
+    local cReturn      := ""
+    local jQueryString := Nil 
+    local jHeader := Nil
+    local cRet := ""
+    local cQuery := ""
+    local nStatus := 0
+    Local jRet
+    local oJson
+    Local lData := .F.
+    Local lValid := .F.
+    Local cToken := ""
+
+    RpcSetEnv("01","01",,,"FIN")
+
+    if Type("cFilAnt") == "C" .and. TCIsConnected()
+        cRet := "Ambiente Protheus aberto e pronto para uso"
+    else
+        RpcSetEnv("01", "01") //Abro o ambiente, pois o mesmo não encontrava-se aberto
+        cRet := "Aberto com sucesso!"
+    endif
+
+    cToken := getmv("MV_RESTALC")    
+
+    jHeader := oRest:getHeaderRequest()
+    
+    if ( jHeader <> Nil )
+        if jHeader["Authorization"] <> cToken
+
+            oRest:setStatusCode(204) // Error
+            cReturn := '{"status":"Error","code":"204", "message":"Chave de acesso invalida!"}'
+
+            oJson := JsonObject():New()
+            jRet := oJson:FromJson(cReturn)
+
+            if ValType(jRet) == "C"
+                conout("Falha ao transformar texto em objeto json. Erro: " + jRet)
+                return
+            endif
+
+            oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+            oRest:setResponse(oJson)
+
+            FreeObj(oJson)
+
+            return
+        Else    
+            lValid := .T.
+        endif
+    endif
+
+    jQueryString := oRest:getQueryRequest()
+    if ( jQueryString <> Nil ) .and. lValid
+        
+        //cReturn := "Parâmetros capturados: [" + jQueryString:ToJSon() + "]" + cRet
+        cReturn := '{ "records" :['
+
+        //cQuery := "SELECT SE2.E2_NUM,SA2.A2_CGC,SE2.E2_EMISSAO,SE2.E2_VALOR,SE2.E2_VENCREA,SE2.E2_BAIXA FROM "+Retsqlname("SE2")+" SE2 JOIN "+Retsqlname("SA2")+" SA2 ON SE2.E2_FORNECE = SA2.A2_COD AND SE2.E2_LOJA = SA2.A2_LOJA WHERE SE2.E2_BAIXA >= "+jQueryString['dataini']+" AND SE2.E2_BAIXA <= "+jQueryString['datafim']+" AND SE2.D_E_L_E_T_ = '' "    
+
+        cQuery := "SELECT SE2.E2_NUM,SA2.A2_CGC,SE2.E2_EMISSAO,SE2.E2_VALOR,SE2.E2_VENCREA,SE2.E2_BAIXA FROM "+Retsqlname("SE2")+" SE2 JOIN "+Retsqlname("SA2")+" SA2 ON SE2.E2_FORNECE = SA2.A2_COD AND SE2.E2_LOJA = SA2.A2_LOJA WHERE SE2.E2_BAIXA >= '"+jQueryString['dataini']+"' AND SE2.E2_BAIXA <= '"+jQueryString['datafim']+"' AND SE2.D_E_L_E_T_ = '' AND SE2.E2_TIPO = 'NF' AND SA2.A2_CGC <> '' AND  SE2.E2_SALDO = 0"
+
+        cQuery := ChangeQuery(cQuery)
+        dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"TSE2",.T.,.T.)
+      
+        nStatus := TCSqlExec(cQuery)
+
+        if (nStatus < 0)
+          alert("TCSQLError() " + TCSQLError())
+        endif
+
+        dbSelectArea("TSE2")
+        While TSE2->(!Eof())
+
+            cReturn += '{"nf_number":"'+TSE2->E2_NUM+'","provider_document_number":"'+TSE2->A2_CGC+'","issue_date":"'+TSE2->E2_EMISSAO+'","amount":"'+alltrim(str(TSE2->E2_VALOR))+'","expected_payment_date":"'+TSE2->E2_VENCREA+'","paid_at":"'+TSE2->E2_BAIXA+'"},' 
+
+            lData := .T.
+
+            TSE2->(dbskip())
+        ENDDO
+        dbCloseArea()
+
+        cReturn := SubStr(cReturn, 1, Len(cReturn)-1)+"]}"
+
+    endif
+
+    IF !lData
+        cReturn := '"records" :[]'
+    ENDIF
+
+    oJson := JsonObject():New()
+    jRet := oJson:FromJson(cReturn)
+
+    if ValType(jRet) == "C"
+        conout("Falha ao transformar texto em objeto json. Erro: " + jRet)
+        return
+    endif
+
+    oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+    oRest:setResponse(oJson)
+
+    FreeObj(oJson)
+
+return

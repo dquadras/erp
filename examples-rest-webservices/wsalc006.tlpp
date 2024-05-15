@@ -1,0 +1,410 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+#INCLUDE 'protheus.ch'
+#INCLUDE 'TOTVS.ch'
+#INCLUDE 'RESTFUL.ch'
+#INCLUDE 'FWMVCDEF.CH'
+#include 'tbiconn.ch'
+
+#define _CRLF CHR(13)+CHR(10)
+
+@Get("/NOTASFISCAIS")
+user function wsalc006()
+
+	Local lRet        := .T.
+	Local lResponse   := .f.
+	Local cMsg        := ""
+	Local y           := 0
+	Local u           := 0
+	Local virgula     := ""
+	Local aCampos     := {}
+	Local jQuery
+	Local cNotaFiscal := ""
+	Local cserie      := ""
+	Local cfornecedor := ""
+	Local cloja       := ""
+	Local cStatus     := ""
+	Local lLerStatus:= GetNewPar("MV_LESTATUS",.F.)
+
+	Default dDatade     := FirstDate(dDataBase)
+	Default dDatate     := LastDate(dDataBase)
+
+	Private Count  := 0
+	Private nTotal := 0
+
+//Novo método para obter os parametros
+	jQuery := JsonObject():New()
+	jQuery := oRest:getQueryRequest()
+//URL
+
+/*jQuery*/
+	if VALTYPE(jQuery) != 'U'
+		cNotaFiscal := jQuery["notaFiscal"] //PadR( oJson[y]['D1_SERIE'], tamsx3('D1_SERIE')[1], " " )
+		cserie      := PadR( jQuery["serie"], tamsx3('D1_SERIE')[1], " " )
+		cfornecedor := jQuery["fornecedor"]
+		cloja       := PadL( jQuery["loja"], tamsx3('E2_LOJA')[1], "0" )
+	endif
+/*Campos*/
+
+	DbSelectArea('SD1')
+	Count To nTotal
+	SD1->(DbGoTop())
+	dbSetOrder(1) //D1_FILIAL+D1_DOC+D1_SERIE+D1_FORNECE+D1_LOJA+D1_COD+D1_ITEM
+
+	//Alimenta os campos de retorno
+	//aStruct := SD1->(DBStruct())
+	cFiltro :=  "D1_FILIAL/D1_DOC/D1_SERIE/D1_FORNECE/D1_CGC/D1_LOJA/D1_TOTAL/D1_CODISS/D1_ITEM/D1_COD/F1_STATUS/D1_CC/D1_CONTA/D1_VENCREA/"
+	aCpos := StrTokArr( cFiltro, "/" )
+	//
+	if len(aCpos) > 0
+		for u := 1 to len(aCpos)
+			//nPOs := ascan(aStruct, {|x| x[1] == aStruct[u,1]})
+			//if nPos > 0
+			if aCpos[u] == "D1_CGC"
+				aAdd(aCampos,{"D1_CGC",tamsx3("A2_CGC")[3]})
+			elseif aCpos[u] == "F1_STATUS"
+				aAdd(aCampos,{"F1_STATUS",tamsx3("F1_STATUS")[3]})
+			elseif aCpos[u] == "D1_VENCREA"
+				aAdd(aCampos,{"D1_VENCREA",tamsx3("E2_VENCREA")[3]})
+			else
+				aAdd(aCampos,{aCpos[u],tamsx3(aCpos[u])[3]})
+			endif
+			//endif
+		next
+	endif
+	//
+
+	if !empty(cNotaFiscal)
+		cMsg += "["
+
+		while SD1->(!eof())
+			count++
+
+			if cNotaFiscal == SD1->D1_DOC .and. cSerie == SD1->D1_SERIE .and. cFornecedor == SD1->D1_FORNECE .and. SD1->D1_LOJA == cLoja
+			                              
+
+				cStatus := posicione("SF1",1,xFilial("SF1")+cNotaFiscal+cSerie+cFornecedor+cLoja+"N",'F1_STATUS')
+
+				cMsg += "{"
+
+				for y:=1 to len(aCampos)
+
+					if y < len(aCampos)
+						virgula := ','
+					else
+						virgula := ''
+					endif
+
+					if aCampos[y][2] == "N"
+						cMsg += '"'+aCampos[y][1]+'":'+'"'+cValtochar(&("SD1->"+aCampos[y][1])) + '"' +virgula    +_CRLF
+					elseif aCampos[y][2] == "D"
+						//
+						if aCampos[y][1] == "D1_VENCREA"
+							cMsg += '"'+"D1_VENCREA"+'":'+'"'+ dtoc(posicione("SE2",1,xFilial("SE2")+PadR(SD1->D1_SERIE,tamsx3('D1_SERIE')[1], " " );
+									   +SD1->D1_DOC+space(tamsx3('E2_PARCELA')[1])+"NF"+SD1->D1_FORNECE+SD1->D1_LOJA,"E2_VENCREA")) + '"' +virgula   +_CRLF
+							//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
+						else
+							//
+							cMsg += '"'+aCampos[y][1]+'":'+'"'+dtos(&("SD1->"+aCampos[y][1])) + '"' +virgula   +_CRLF
+						endIf
+					elseif aCampos[y][1] == "D1_CGC"
+						cMsg += '"'+"D1_CGC"+'":'+'"'+posicione("SA2",1,xFilial("SA2")+SD1->D1_FORNECE+SD1->D1_LOJA,'A2_CGC') + '"' +virgula   +_CRLF
+					elseif aCampos[y][1] == "D1_FILIAL"
+						cMsg += '"'+"D1_FILIAL"+'":'+'"'+cEmpAnt+cFilAnt + '"' +virgula   +_CRLF
+					elseif aCampos[y][1] == "D1_CODISS"
+						cMsg += '"'+"D1_CODISS"+'":'+'"'+ posicione("SB1",1,xFilial("SB1")+SD1->D1_COD+SD1->D1_LOCAL,'B1_CODISS')+ '"' +virgula   +_CRLF
+					elseif aCampos[y][1] == "F1_STATUS"
+						cMsg += '"'+"F1_STATUS"+'":'+'"'+ cStatus + '"' +virgula   +_CRLF
+					else
+						cMsg += '"'+aCampos[y][1]+'":'+'"'+Alltrim(&("SD1->"+aCampos[y][1])) + '"' +virgula   +_CRLF
+					endIf
+				next
+
+				if Count < nTotal
+					cMsg += '},'
+				else
+					cMsg += '}'
+				endIf
+
+				lResponse := .T.
+
+			endIf
+
+			SD1->(dbSkip())
+
+		endDo
+		//
+		SD1->(dbCloseArea())
+		//
+		cMsg += ']'
+		cMsg := STRTRAN(cMsg,"},]","}]")
+
+		if lResponse
+			oRest:setResponse(cMsg)
+			conout("Retorno requisição GET: "+cMsg)
+		else
+			oRest:setResponse('{Nota Fiscal: '+cNotaFiscal+ ' não encontrada.}')
+			conout('ERROR 404: Nota Fiscal: '+cNotaFiscal+ ' não encontrada.')
+		endif
+
+	else
+
+		cMsg := '['
+
+		DbSelectArea('SD1')
+		Count To nTotal
+		SD1->(DbGoTop())
+
+		while SD1->(!eof())
+			Count++
+
+			if SD1->D1_EMISSAO >= dDatade .and. SD1->D1_EMISSAO <= dDatate
+
+				cStatus := posicione("SF1",1,xFilial("SF1")+SD1->D1_DOC+SD1->D1_SERIE+SD1->D1_FORNECE+SD1->D1_LOJA+"N",'F1_STATUS')
+
+				if lLerStatus
+					if empty(cStatus)
+						LOOP
+					endif
+				endif
+
+				cMsg += '{'
+
+				for y:=1 to len(aCampos)
+
+					if y < len(aCampos)
+						virgula := ','
+					else
+						virgula := ''
+					endif
+
+					if aCampos[y][2] == "N"
+						cMsg += '"'+aCampos[y][1]+'":'+'"'+cValtochar(&("SD1->"+aCampos[y][1])) + '"' +virgula    +_CRLF
+					elseif aCampos[y][2] == "D"
+						//
+						if aCampos[y][1] == "D1_VENCREA"
+							cMsg += '"'+"D1_VENCREA"+'":'+'"'+ dtoc(posicione("SE2",1,xFilial("SE2")+PadR( SD1->D1_SERIE,tamsx3('D1_SERIE')[1], " " )+SD1->D1_DOC+space(tamsx3('E2_PARCELA')[1]);
+								+"NF "+SD1->D1_FORNECE+SD1->D1_LOJA,"E2_VENCREA")) + '"' +virgula   +_CRLF
+							//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
+						else
+							//
+							cMsg += '"'+aCampos[y][1]+'":'+'"'+dtos(&("SD1->"+aCampos[y][1])) + '"' +virgula   +_CRLF
+						endIf
+					elseif aCampos[y][1] == "D1_CGC"
+						cMsg += '"'+"D1_CGC"+'":'+'"'+posicione("SA2",1,xFilial("SA2")+SD1->D1_FORNECE+SD1->D1_LOJA,'A2_CGC') + '"' +virgula   +_CRLF
+					elseif aCampos[y][1] == "D1_FILIAL"
+						cMsg += '"'+"D1_FILIAL"+'":'+'"'+cEmpAnt+cFilAnt + '"' +virgula   +_CRLF
+					elseif aCampos[y][1] == "D1_CODISS"
+						cMsg += '"'+"D1_CODISS"+'":'+'"'+ posicione("SB1",1,xFilial("SB1")+SD1->D1_COD+SD1->D1_LOCAL,'B1_CODISS')+ '"' +virgula   +_CRLF
+					elseif aCampos[y][1] == "F1_STATUS"
+						cMsg += '"'+"F1_STATUS"+'":'+'"'+ cStatus + '"' +virgula   +_CRLF
+					else
+						cMsg += '"'+aCampos[y][1]+'":'+'"'+Alltrim(&("SD1->"+aCampos[y][1])) + '"' +virgula   +_CRLF
+					endIf
+				next
+
+				if Count < nTotal
+					cMsg += '},' +_CRLF
+				else
+					cMsg += '}'
+				endIf
+
+			endif
+			SD1->(dbSkip())
+		enddo
+		//
+		SD1->(dbCloseArea())
+		//
+		cMsg += ']'
+		cMsg := STRTRAN(cMsg,"},]","}]")
+/*
+		if Count > 0
+			lResponse := .T.
+		endif
+*/
+		oRest:setResponse(cMsg)
+		conout("Retorno GET all: "+cMsg)
+	endif
+
+return lret
+
+/* METODO POST */
+@Post("/NOTASFISCAIS")
+user function wsPost006()
+
+//	::setContentType("application/json")
+
+	Local lRet         := .t.
+	Local y          := 0
+	Local cCampos      := ""
+	//Local aUsado       := {}
+	Local aCampos      := {}
+	Local oJson
+	LOCAL aArray       := {}
+	Local cDetalhe     := ""
+	Local jQuery       := ""
+	//Local cCusto       := ""
+	//Local cConta       :=""
+
+	Private cJson       := "" //::getContent()
+	Private oParseJSON	:= nil
+	PRIVATE lMsErroAuto    := .F.
+	Private lMsHelpAuto    := .T.
+	Private lAutoErrNoFile := .T.
+
+	//Novo métido de retornar json
+	oJson := JsonObject():New()
+	cJson := oRest:GetBodyRequest()
+	jQuery := oRest:getQueryRequest() // Retorna a QueryString (Parametros)
+	//oJson := oJson:fromJson(oRest:GetBodyRequest())
+	//json
+
+	conout("Json recebido no Protheus: "+cJson)
+
+//Conversão Json em Objeto
+	ret := oJson:FromJson(cJson)
+	if ValType(ret) == "C"
+		conout("Falha ao transformar texto em objeto json. Erro: " + ret)
+		oRest:setResponse("{Falha ao transformar texto em objeto json. Erro: " + ret+"}")
+		return .F.
+	endif
+
+//Estrutura de campos usados
+	cCampos := "E2_PREFIXO/E2_NUM/E2_PARCELA/E2_TIPO/E2_EMISSAO/E2_SALDO/E2_DATALIB/E2_FORNECE/"
+	cCampos += "E2_LOJA/E2_VLCRUZ/E2_VENCTO/E2_CONTAD/E2_CCUSTO/E2_NATUREZ/"
+	aCampos := StrTokArr( cCampos, "/" )
+	
+//Tamanho do array json
+	nJson := len(oJson)
+
+	if nJson == 0
+		oRest:setResponse('{ "Mensagem" : "Json passado de forma incorreta, verifique a sintaxe" }')
+		conout("ERRO 407: Json passado de forma incorreta, verifique a sintaxe")
+		//lRet := .F.
+	endIf
+
+	if valtype(jQuery) != 'U' .and. empty(jQuery["processo"])
+
+		For y := 1 to nJson
+
+			aArray := { { "E2_PREFIXO"  , PadR( oJson[y]['D1_SERIE'], tamsx3('D1_SERIE')[1], " " )   , NIL },;
+				{ "E2_NUM"      , oJson[y]['D1_DOC']     , NIL },;
+				{ "E2_TIPO"     , "NF "               , NIL },;
+				{ "E2_PARCELA"  , "   "               , NIL },;
+				{ "E2_DATALIB"  , dDataBase           , NIL },;
+				{ "E2_FORNECE"  , subs(oJson[y]['D1_FORNECE'],1,6) , NIL },;
+				{ "E2_XLIBSN"   , '2' , NIL },;
+				{ "E2_LOJA"     , oJson[y]['D1_LOJA']    , NIL }}
+
+			MsExecAuto( { |x,y,z| FINA050(x,y,z)}, aArray,, 4)  // 3 - Inclusao, 4 - Alteração, 5 - Exclusão
+
+
+			If lMsErroAuto
+				//MostraErro()
+				ConOut("Erro na alteração contas a pagar!")
+				cLog := "Erro na alteração contas a pagar" + CRLF
+
+				//função que retorna as informações de erro ocorridos durante o processo da rotina automática
+				aEval(GetAutoGrLog(), {|x| cDetalhe+= x + CRLF })
+				conout(cLog + cDetalhe)
+				oRest:setResponse('{ "Mensagem" :'+  cLog + cDetalhe )
+				//lRet := .F.
+			Else
+				conout("Título alterado com sucesso!")
+				//u_GravaSD1(oJson[y]['D1_CONTA'], oJson[y]['D1_CC'] ,oJson ,y)
+				oRest:setResponse('{"Mensagem" :'+'"Titulo: '+oJson[y]['D1_DOC']+' liberado para pagamento"}')
+			Endif
+
+		next
+	else
+		//REEMBOLSO
+		for y := 1 to nJson
+
+			aArray := { { "E2_PREFIXO"  , PadR( oJson[y]['E2_PREFIXO'], tamsx3('D1_SERIE')[1], " " )   , NIL },;
+				{ "E2_NUM"      , oJson[y]['E2_NUM']     , NIL },;
+				{ "E2_PARCELA"  , oJson[y]['E2_PARCELA'] , NIL },;
+				{ "E2_TIPO"     , "NF"                , NIL },;
+				{ "E2_EMISSAO"  , dDataBase           , NIL },;
+				{ "E2_DATALIB"  , dDataBase           , NIL },;
+				{ "E2_FORNECE"  , subs(oJson[y]['E2_FORNECE'],1,6) , NIL },;
+				{ "E2_LOJA"     , oJson[y]['E2_LOJA']    , NIL },;
+				{ "E2_VALOR"    , oJson[y]['E2_VALOR']    , NIL },;
+				{ "E2_VLCRUZ"   , oJson[y]['E2_VLCRUZ']  , NIL },;
+				{ "E2_VENCTO"   , Iif(!empty(oJson[y]['E2_VENCTO']),dtoc(oJson[y]['E2_VENCTO']),dDataBase)  , NIL },;
+				{ "E2_CONTAD"   , oJson[y]['E2_CONTAD']  , NIL },;
+				{ "E2_CCUSTO"   , oJson[y]['E2_CCUSTO']  , NIL },;
+				{ "E2_NATUREZ"  , oJson[y]['E2_NATUREZ'] , NIL }}
+
+			MsExecAuto( { |x,y,z| FINA050(x,y,z)}, aArray,, 3)  // 3 - Inclusao, 4 - Alteração, 5 - Exclusão
+
+			If lMsErroAuto
+				//MostraErro()
+				ConOut("Erro na inclusao!")
+				cLog := "Erro na inclusão reembolso." + CRLF
+
+				//função que retorna as informações de erro ocorridos durante o processo da rotina automática
+				aEval(GetAutoGrLog(), {|x| cDetalhe+= x + CRLF })
+				conout(cLog + cDetalhe)
+				oRest:setResponse('{ "Mensagem" :'+  cLog + cDetalhe )
+				//lRet := .F.
+			Else
+				conout("Reembolso incluido com sucesso!")
+				oRest:setResponse('{"Mensagem" :'+'"Reembolso: '+oJson[y]['E2_NUM'] +' incluido com sucesso."}')
+			Endif
+
+		next
+
+	endif
+
+return lRet
+
+/*/{Protheus.doc} User Function GravaSD1
+	(long_description)
+	@type  Function
+	@author user
+	@since 10/03/2023
+	@version version
+	@param param_name, param_type, param_descr
+	@return return_var, return_type, return_description
+	@example
+	(examples)
+	@see (links_or_references)
+	/*/
+User Function GravaSD1(oJson,y)
+
+	Local lRet := .T.
+	
+	Default y      := 1
+	
+/*Gravação de centro de custo e conta contabil*/
+dbSelectArea("SD1")
+dbSetOrder(1) //D1_FILIAL+D1_DOC+D1_SERIE+D1_FORNECE+D1_LOJA+D1_COD+D1_ITEM
+
+	if !empty(oJson[y]['D1_CONTA']) .or. !empty(oJson[y]['D1_CC'])
+
+		cCusto := Posicione("CTT",1,xFilial("CTT")+oJson[y]['D1_CC'],'CTT_CUSTO')
+		cConta := Posicione("CT1",1,xFilial("CT1")+oJson[y]['D1_CONTA'],'CT1_CONTA')
+
+		if empty(cCusto)
+			oRest:setResponse('{ "Mensagem" : Centro de custo não encontrado}')
+		endif
+
+		if empty(cConta)
+			oRest:setResponse('{ "Mensagem" : Conta contabil não encontrada}')
+		endif
+
+		SD1->(msseek(xFilial("SD1")+oJson[y]['D1_DOC']+PadR( oJson[y]['D1_SERIE'], tamsx3('D1_SERIE')[1], " " )+subs(oJson[y]['D1_FORNECE'],1,6)+oJson[y]['D1_LOJA'];
+			+oJson[y]['D1_COD']+oJson[y]['D1_ITEM']))
+
+		RECLOCK( "SD1", .F. )
+		replace D1_CONTA with cConta
+		replace D1_CC    with cCusto
+		Msunlock()
+
+		//SD1->(dbCloseArea())
+
+	endif
+
+SD1->(dbCloseArea())
+/**/
+Return lRet

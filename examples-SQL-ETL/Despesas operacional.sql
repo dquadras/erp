@@ -1,0 +1,10 @@
+DECLARE
+	nVldesp   NUMBER := 0;
+
+BEGIN
+	
+	SELECT abs(sum(a.CQ1_DEBITO) - sum(a.CQ1_CREDIT)) INTO nVldesp FROM PROTHEUS.CQ1010 a WHERE a.CQ1_TPSALD = '1' AND a.D_E_L_E_T_ <> '*'  AND  SUBSTR(CQ1_CONTA,1,7)  = '3112321' AND CQ1_TPSALD = '1' AND CQ1_MOEDA = '01';
+
+	DBMS_OUTPUT.PUT_LINE('Despesa = ' || TO_CHAR(nVldesp));
+	
+END;

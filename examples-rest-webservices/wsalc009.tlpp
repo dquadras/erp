@@ -1,0 +1,58 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+#INCLUDE 'protheus.ch'
+#INCLUDE 'TOTVS.ch'
+#INCLUDE 'RESTFUL.ch' 
+#INCLUDE 'FWMVCDEF.CH'
+#include "tbiconn.ch"
+
+// ----------------------------------------------------------------------
+/*/{Protheus.doc} 
+API POST Consumo de licencas monitoramento.
+
+@author David Ferreira Quadras
+@since 06/10/2023
+@version 1.0
+/*/
+// ----------------------------------------------------------------------
+
+@post("alice/sleeptest")
+user function wsalc009()
+
+    local jBody := ''
+    local cRet := ''
+    local cReturn := ''
+    local jRet
+
+    RpcSetEnv("01","01",,,"FIN")
+
+    if Type("cFilAnt") == "C" .and. TCIsConnected()
+        cRet := "Ambiente Protheus aberto e pronto para uso"
+    else
+        RpcSetEnv("01", "01") //Abro o ambiente, pois o mesmo não encontrava-se aberto
+        cRet := "Aberto com sucesso!"
+    endif
+    
+    jBody := JsonObject():new()
+    jBody:fromJson(oRest:GetBodyRequest())
+
+    cTime := jBody["time"]
+
+    Sleep(cTime)
+
+    cReturn := '{"status":"Sleep return"}'
+
+    jRet := jBody:FromJson(cReturn)
+
+        if ValType(jRet) == "C"
+        conout("Falha ao transformar texto em objeto json. Erro: " + jRet)
+        return
+    endif
+
+    oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+    oRest:setResponse(jBody)
+
+    FreeObj(jBody)
+
+return

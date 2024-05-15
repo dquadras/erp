@@ -1,0 +1,127 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+#INCLUDE 'protheus.ch'
+#INCLUDE 'TOTVS.ch'
+#INCLUDE 'RESTFUL.ch' 
+#INCLUDE 'FWMVCDEF.CH'
+#include "tbiconn.ch"
+
+// ----------------------------------------------------------------------
+/*/{Protheus.doc} 
+API PUT para alterar classificação contabil das notas fiscais.
+
+@param nf_number | provider_id 
+
+@author David Ferreira Quadras
+@since 17/02/2023
+@version 1.0
+/*/
+// ----------------------------------------------------------------------
+
+@put("alice/nfclascont")
+user function wsalc004()
+
+    //local cNf := ''
+    local cProviderid := ''
+    local jBody := ''
+    local aNf := []
+    local cContactb := ''
+    local cCcusto  := ''
+    local i
+    local cForn := ""
+    local jRet
+    Local jHeader
+    Local cToken := ""
+    Local oJson
+    Local lValid := .F.
+
+    RpcSetEnv("01","01",,,"COM")
+
+    jBody := JsonObject():new()
+    jBody:fromJson(oRest:GetBodyRequest())
+
+
+    if Type("cFilAnt") == "C" .and. TCIsConnected()
+        cRet := "Ambiente Protheus aberto e pronto para uso"
+    else
+        RpcSetEnv("01", "01") //Abro o ambiente, pois o mesmo não encontrava-se aberto
+        cRet := "Aberto com sucesso!"
+    endif
+
+    cToken := getmv("MV_RESTALC")    
+
+    jHeader := oRest:getHeaderRequest()
+    
+    if ( jHeader <> Nil )
+        if jHeader["Authorization"] <> cToken
+
+            oRest:setStatusCode(204) // Error
+            cReturn := '{"status":"Error","code":"204", "message":"Chave de acesso invalida!"}'
+
+            oJson := JsonObject():New()
+            jRet := oJson:FromJson(cReturn)
+
+            if ValType(jRet) == "C"
+                conout("Falha ao transformar texto em objeto json. Erro: " + jRet)
+                return
+            endif
+
+            oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+            oRest:setResponse(oJson)
+
+            FreeObj(oJson)
+
+            return
+        Else    
+            lValid := .T.
+        endif
+    endif
+
+    if ( jBody <> Nil ) .and. lValid
+        aNf := jBody["nf"]
+        cProviderid := jBody["provider_id"]
+        cContactb := jBody["conta_contabil"]
+        cCcusto := jBody["centro_custo"]
+    endif    
+
+    DbSelectArea("SA2")
+    DbSetOrder(3)
+    IF DBSEEK(SA2->(xFilial())+cProviderid)
+       cForn := SA2->A2_COD 
+    ENDIF
+
+
+    IF cForn <> "" .and. lValid
+        For i := 1 to len(aNf)
+
+            cLib := " UPDATE "+RetSqlName('SD1')+" SET D1_CONTA = '"+cContactb+"',D1_CC = '"+cCcusto+"' WHERE F1_DOC = '"+aNf[i]+"' AND F1_FORNECE = '"+cForn+"'  "
+            nStatus := TCSqlExec(cLib)
+
+            if (nStatus < 0)
+                alert("TCSQLError() " + TCSQLError())
+            endif
+
+        Next i   
+        oRest:setStatusCode(200) // Success
+        cReturn := '{"status":"Success","code":"200", "message":"Notas processadas com sucesso!"}'
+    else
+        oRest:setStatusCode(204) // Error
+        cReturn := '{"status":"Error","code":"204", "message":"Fornecedor nao encontrado!"}'
+    Endif
+
+
+    jRet := jBody:FromJson(cReturn)
+
+    if ValType(jRet) == "C"
+        conout("Falha ao transformar texto em objeto json. Erro: " + jRet)
+        return
+    endif
+
+    oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+    oRest:setResponse(jBody)
+
+    FreeObj(jBody)
+ 
+return

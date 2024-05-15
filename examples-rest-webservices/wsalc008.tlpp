@@ -1,0 +1,295 @@
+#include 'tlpp-core.th'
+#include 'tlpp-rest.th'
+#INCLUDE 'protheus.ch'
+#INCLUDE 'TOTVS.ch'
+#INCLUDE 'RESTFUL.ch' 
+#INCLUDE 'FWMVCDEF.CH'
+#include "tbiconn.ch"
+
+// ----------------------------------------------------------------------
+/*/{Protheus.doc} 
+API GET para retornar os dados de membros para interface de integração com ServiceNow.
+
+@param CPF 
+
+@author David Ferreira Quadras
+@since 13/10/2022
+@version 1.0
+/*/
+// ----------------------------------------------------------------------
+
+@Get("alice/getmembers/cpf")
+user function wsalc008()
+
+    local cReturn      := ""
+    local jQueryString := Nil 
+    local jHeader := Nil
+    local cRet := ""
+    local cQuery := ""
+    local nStatus := 0
+    Local jRet
+    local oJson
+    local cDatavenc := ""
+    Local lData := .F.
+    Local lValid := .F.
+    Local cToken := ""
+
+    RpcSetEnv("01","01",,,"FIN")
+
+    if Type("cFilAnt") == "C" .and. TCIsConnected()
+        cRet := "Ambiente Protheus aberto e pronto para uso"
+    else
+        RpcSetEnv("01", "01") //Abro o ambiente, pois o mesmo não encontrava-se aberto
+        cRet := "Aberto com sucesso!"
+    endif
+    
+    /* cToken := getmv("MV_RESTALC")    //Autenticação manual obsoleta
+
+    jHeader := oRest:getHeaderRequest()
+    
+    if ( jHeader <> Nil )
+        if jHeader["Authorization"] <> cToken
+
+            oRest:setStatusCode(204) // Error
+            cReturn := '{"status":"Error","code":"204", "message":"Chave de acesso invalida!"}'
+
+            oJson := JsonObject():New()
+            jRet := oJson:FromJson(cReturn)
+
+            if ValType(jRet) == "C"
+                conout("Falha ao transformar texto em objeto json. Erro: " + jRet)
+                return
+            endif
+
+            oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+            oRest:setResponse(oJson)
+
+            FreeObj(oJson)
+
+            return
+        Else    
+            lValid := .T.
+        endif
+    endif */
+
+    jQueryString := oRest:getQueryRequest()
+
+    if ( jQueryString <> Nil ) //.and. lValid
+        
+        cQuery := "SELECT " 
+        cQuery += "BA3.BA3_CODEMP EMPRESA,"
+        cQuery += "BA3.BA3_CONEMP CONTRATO_EMPRESA,"
+        cQuery += "BA3.BA3_VERCON VERSAO_CONTRATO,"
+        cQuery += "BA3.BA3_SUBCON SUB_CONTRATO,"
+        cQuery += "BA3.BA3_VERSUB VERSAO_SUBCONTRATO,"
+        cQuery += "BA3.BA3_CODPLA PRODUTO,"
+        cQuery += "BA3.BA3_VERSAO VERSAO_PRODUTO,"
+        cQuery += "BA3.BA3_CODCLI CLIENTE,"
+        cQuery += "BA3.BA3_LOJA   LOJA_CLIENTE,"
+        cQuery += "SA1BA3.A1_NOME NOME_CLIENTE,"
+        cQuery += "SA1BA3.A1_CGC  CPF_B2C,"  
+        cQuery += "BQC.BQC_CODCLI CLIENTE_B2B,"
+        cQuery += "BQC.BQC_LOJA   LOJA_CLIENTE_B2B,"
+        cQuery += "SA1BQC.A1_NOME NOME_CLIENTE_B2B,"
+        cQuery += "SA1BQC.A1_CGC  CNPJ_B2B," 
+        cQuery += "BA3.BA3_VENCTO DATA_VENCIMENTO," 
+        cQuery += "BA3.BA3_CODVEN VENDEDOR,"
+        cQuery += "BA3.BA3_CODVE2 SEGUNDO_VENDEDOR,"
+        cQuery += "BA3.BA3_EQUIPE EQUIPE_VENDA,"
+        cQuery += "BA3.BA3_DATBAS DATA_INCLUSAO,"
+        cQuery += "BA3.BA3_MATRIC MATRICULA,"
+        cQuery += "BA1.BA1_TIPUSU TIPOUSUARIO,"
+        cQuery += "BA1.BA1_XIDALI IDALICE,"
+        cQuery += "BA1.BA1_MATVID IDTOTVS,"
+        cQuery += "BTS.BTS_CPFUSR CPFBEN,"
+        cQuery += "BTS.BTS_CPFMAE CPFMAE,"
+        cQuery += "BTS.BTS_CPFPAI CPFPAI,"
+        cQuery += "BTS.BTS_DRGUSR RGBEN,"
+        cQuery += "BTS.BTS_ORGEM  ORRGBEN,"
+        cQuery += "BTS.BTS_NOMUSR NOMEBEN,"
+        cQuery += "BTS.BTS_NOMSOC NOMESOC,"
+        cQuery += "BTS.BTS_MAE	  NOMEMAE,"
+        cQuery += "BTS.BTS_PAI	  NOMEPAI,"
+        cQuery += "BTS.BTS_NOMPRE NOMEPRE,"
+        cQuery += "BTS.BTS_CEPUSR CEPBEN,"
+        cQuery += "BTS.BTS_ENDERE LOGRADOURO,"
+        cQuery += "BTS.BTS_NR_END NROLOGRAD,"
+        cQuery += "BTS.BTS_COMEND COMLOGRAD,"
+        cQuery += "BTS.BTS_BAIRRO BAIRROLOGRAD,"
+        cQuery += "BTS.BTS_CODMUN CDMUNICIPIO,"
+        cQuery += "BTS.BTS_ESTADO ESTLOGRAD,"
+        cQuery += "BTS.BTS_DDD    DDD,"
+        cQuery += "BTS.BTS_TELEFO TELEFONE,"
+        cQuery += "BTS.BTS_DATNAS DATANASCIME,"
+        cQuery += "'' DATACARENCIA,"
+        cQuery += "'' DATACPT, "
+        cQuery += "BA1.BA1_GRAUPA GRAUPAREN,"
+        cQuery += "BA1.BA1_ESTCIV ESTADOCIVIL,"
+        cQuery += "BTS.BTS_SEXO SEXO,"
+        cQuery += "BTS.BTS_RESEXT RESESTERIOR,"
+        cQuery += "BTS.BTS_NRCRNA NRCARNSA,"
+        cQuery += "BA1.BA1_CODCCO NROCCO,"
+        cQuery += "BA1.BA1_EMAIL  EMAIL,"
+        cQuery += "BA1.BA1_RECNAS RECEMNASC,"
+        cQuery += "BA1.BA1_DATBLO DATABLOQ,"
+        cQuery += "BA1.BA1_MOTBLO MOTBLOQ,"
+        cQuery += "BA1.BA1_USRVIP USRVIP,"
+        cQuery += "BI3.BI3_SUSEP  IDPRODANS,"
+        cQuery += "BI3.BI3_DESCRI NOME_PRODUTO,"
+        cQuery += "ROW_NUMBER() OVER(PARTITION BY BTS.BTS_NOMUSR ORDER BY BTS.BTS_NOMUSR ASC)  LINHA,"
+        cQuery += "BA1.BA1_CODINT+BA1.BA1_CODEMP+BA1.BA1_MATRIC+BA1.BA1_TIPREG+BA1.BA1_DIGITO MATRICULA_HAT "
+        cQuery += "FROM BTS010 BTS  "
+        cQuery += "JOIN BA1010 BA1 ON BA1.BA1_MATVID = BTS.BTS_MATVID AND BA1.D_E_L_E_T_ = '' "
+        cQuery += "JOIN BA3010 BA3 ON BA3.BA3_CODINT+BA3.BA3_CODEMP+BA3.BA3_MATRIC = BA1.BA1_CODINT+BA1.BA1_CODEMP+BA1.BA1_MATRIC AND BA3.D_E_L_E_T_ = '' "
+        cQuery += "JOIN BG9010 BG9 ON BG9.BG9_CODIGO = BA3.BA3_CODEMP AND BG9.D_E_L_E_T_ = '' "
+        cQuery += "JOIN BI3010 BI3 ON BI3.BI3_CODIGO = BA1.BA1_CODPLA AND BI3.D_E_L_E_T_ = '' "
+        cQuery += "LEFT JOIN BQC010 BQC ON BQC.BQC_CODEMP+BQC.BQC_NUMCON+BQC.BQC_VERCON+BQC.BQC_SUBCON+BQC.BQC_VERSUB = BA3.BA3_CODEMP+BA3.BA3_CONEMP+BA3.BA3_VERCON+BA3.BA3_SUBCON+BA3.BA3_VERSUB AND BQC.D_E_L_E_T_ = '' "                                                                                                                                                                                                                 
+        cQuery += "LEFT JOIN BT5010 BT5 ON BT5.BT5_CODIGO+BT5.BT5_NUMCON = BQC.BQC_CODEMP+BQC.BQC_NUMCON AND BT5.D_E_L_E_T_ = '' " 
+        cQuery += "LEFT JOIN SA1010 SA1BA3 ON SA1BA3.A1_COD = BA3.BA3_CODCLI AND SA1BA3.A1_LOJA = BA3.BA3_LOJA AND SA1BA3.D_E_L_E_T_ = '' "                                                                                                                                                                                                                                                  
+        cQuery += "LEFT JOIN SA1010 SA1BQC ON SA1BQC.A1_COD = BQC.BQC_CODCLI AND SA1BQC.A1_LOJA = BQC.BQC_LOJA AND SA1BQC.D_E_L_E_T_ = '' "                                                                                                                                                                                                                                                  
+        cQuery += "WHERE"
+        cQuery += "BTS.D_E_L_E_T_ = '' AND BTS.BTS_CPFUSR = '"+jQueryString['cpf']+"'"
+
+        cQuery := ChangeQuery(cQuery)
+
+        if Select("TMEM") > 0
+            TMEM->(dbCloseArea())
+        Endif
+
+        dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"TMEM",.T.,.T.)
+      
+        cReturn := '{ "records" :['
+
+        nStatus := TCSqlExec(cQuery)
+
+        if (nStatus < 0)
+          alert("TCSQLError() " + TCSQLError())
+        endif
+
+        dbSelectArea("TMEM")
+        While TMEM->(!Eof())
+
+            IF TMEM->DATA_VENCIMENTO == 0
+                cDatavenc := ""
+            endif
+
+
+            //Apura a faixa atual de cobrança do membro
+            //aRetFun := PLSVLRFAI(cMatricFam,Ano atual,Mes Atual,'101')
+
+            //Faixas de carencia teste
+            //BFJ(cCodInt+cEMPRESA+cMATRICULA)
+
+            cReturn += '{'
+            cReturn += '"EMPRESA":"'+TMEM->EMPRESA+'",
+            cReturn += '"CONTRATO_EMPRESA":"'+TMEM->CONTRATO_EMPRESA+'",
+            cReturn += '"VERSAO_CONTRATO":"'+TMEM->VERSAO_CONTRATO+'",
+            cReturn += '"SUB_CONTRATO":"'+TMEM->SUB_CONTRATO+'",
+            cReturn += '"VERSAO_SUBCONTRATO":"'+TMEM->VERSAO_SUBCONTRATO+'",
+            cReturn += '"PRODUTO":"'+TMEM->PRODUTO+'",
+            cReturn += '"VERSAO_PRODUTO":"'+TMEM->VERSAO_PRODUTO+'",
+            cReturn += '"NOME_PRODUTO":"'+TMEM->NOME_PRODUTO+'",
+            cReturn += '"IDPRODANS":"'+TMEM->IDPRODANS+'",
+            cReturn += '"CLIENTE":"'+TMEM->CLIENTE+'",
+            cReturn += '"LOJA_CLIENTE":"'+TMEM->LOJA_CLIENTE+'",
+            cReturn += '"NOME_CLIENTE":"'+TMEM->NOME_CLIENTE+'",
+            cReturn += '"CPF_B2C":"'+TMEM->CPF_B2C+'",
+            cReturn += '"CLIENTE_B2B":"'+TMEM->CLIENTE_B2B+'",
+            cReturn += '"LOJA_CLIENTE_B2B":"'+TMEM->LOJA_CLIENTE_B2B+'",
+            cReturn += '"NOME_CLIENTE_B2B":"'+TMEM->NOME_CLIENTE_B2B+'",
+            cReturn += '"CNPJ_B2B":"'+TMEM->CNPJ_B2B+'",
+            cReturn += '"DATA_VENCIMENTO":"'+cDatavenc+'",
+            cReturn += '"VENDEDOR":"'+TMEM->VENDEDOR+'",
+            cReturn += '"SEGUNDO_VENDEDOR":"'+TMEM->SEGUNDO_VENDEDOR+'",
+            cReturn += '"EQUIPE_VENDA":"'+TMEM->EQUIPE_VENDA+'",
+            cReturn += '"DATA_INCLUSAO":"'+TMEM->DATA_INCLUSAO+'",
+            cReturn += '"MATRICULA":"'+TMEM->MATRICULA+'",
+            cReturn += '"TIPOUSUARIO":"'+TMEM->TIPOUSUARIO+'",
+            cReturn += '"IDALICE":"'+TMEM->IDALICE+'",
+            cReturn += '"IDTOTVS":"'+TMEM->IDTOTVS+'",
+            cReturn += '"CPFBEN":"'+TMEM->CPFBEN+'",
+            cReturn += '"CPFMAE":"'+TMEM->CPFMAE+'",
+            cReturn += '"CPFPAI":"'+TMEM->CPFPAI+'",
+            cReturn += '"RGBEN":"'+TMEM->RGBEN+'",
+            cReturn += '"ORRGBEN":"'+TMEM->ORRGBEN+'",
+            cReturn += '"NOMEBEN":"'+TMEM->NOMEBEN+'",
+            cReturn += '"NOMESOC":"'+TMEM->NOMESOC+'",
+            cReturn += '"NOMEMAE":"'+TMEM->NOMEMAE+'",
+            cReturn += '"NOMEPAI":"'+TMEM->NOMEPAI+'",
+            cReturn += '"NOMEPRE":"'+TMEM->NOMEPRE+'",
+            cReturn += '"CEPBEN":"'+TMEM->CEPBEN+'",
+            cReturn += '"LOGRADOURO":"'+TMEM->LOGRADOURO+'",
+            cReturn += '"NROLOGRAD":"'+TMEM->NROLOGRAD+'",
+            cReturn += '"COMLOGRAD":"'+TMEM->COMLOGRAD+'",
+            cReturn += '"BAIRROLOGRAD":"'+TMEM->BAIRROLOGRAD+'",
+            cReturn += '"CDMUNICIPIO":"'+TMEM->CDMUNICIPIO+'",
+            cReturn += '"ESTLOGRAD":"'+TMEM->ESTLOGRAD+'",
+            cReturn += '"DDD":"'+TMEM->DDD+'",
+            cReturn += '"TELEFONE":"'+TMEM->TELEFONE+'",
+            cReturn += '"DATANASCIME":"'+TMEM->DATANASCIME+'",
+            cReturn += '"DATACARENCIA":"'+TMEM->DATACARENCIA+'",
+            cReturn += '"DATACPT":"'+TMEM->DATACPT+'",
+            cReturn += '"GRAUPAREN":"'+TMEM->GRAUPAREN+'",
+            cReturn += '"ESTADOCIVIL":"'+TMEM->ESTADOCIVIL+'",
+            cReturn += '"SEXO":"'+TMEM->SEXO+'",
+            cReturn += '"RESESTERIOR":"'+TMEM->RESESTERIOR+'",
+            cReturn += '"NRCARNSA":"'+TMEM->NRCARNSA+'",
+            cReturn += '"NROCCO":"'+TMEM->NROCCO+'",
+            cReturn += '"EMAIL":"'+TMEM->EMAIL+'",
+            cReturn += '"RECEMNASC":"'+TMEM->RECEMNASC+'",
+            cReturn += '"DATABLOQ":"'+TMEM->DATABLOQ+'",
+            cReturn += '"MOTBLOQ":"'+TMEM->MOTBLOQ+'",
+            cReturn += '"MATRICULA_HAT":"'+TMEM->MATRICULA_HAT+'",
+            cReturn += '"USER_VIP":"'+TMEM->USRVIP+'"
+            cReturn += '},'
+
+
+            lData := .T.
+
+            TMEM->(dbskip())
+        ENDDO
+        dbCloseArea()
+
+        cReturn := SubStr(cReturn, 1, Len(cReturn)-1)+"]}"
+
+    endif
+
+    IF !lData
+        cReturn := '"records" :[]'
+    ENDIF
+
+    oJson := JsonObject():New()
+    jRet := oJson:FromJson(cReturn)
+
+    conout("String json. : " + cReturn)
+
+    if ValType(jRet) == "C"
+
+        oRest:setStatusCode(204) // Error
+        cReturn := '{"status":"Error","code":"204", "message":"Erro ao transformar objeto Json!"}'    
+
+        oJson := JsonObject():New()
+        jRet := oJson:FromJson(cReturn)
+
+        if ValType(jRet) == "C"
+           conout("Falha ao transformar texto em objeto json. Erro: " + jRet)
+           return
+        endif
+
+        oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+        oRest:setResponse(oJson:toJson())
+
+        FreeObj(oJson)
+        
+        return
+    endif
+
+    oRest:setKeyHeaderResponse('Content-Type','application/json')
+
+    oRest:setResponse(oJson:toJson())
+
+    FreeObj(oJson)
+
+return
