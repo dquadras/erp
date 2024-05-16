@@ -1,0 +1,909 @@
+version: 2
+
+models:
+  - name: razao_alice_operadora
+    description: 'Lancamentos contabeis alice operadora'
+    meta:
+      owner: david.ferreira
+      maturity_level: low
+    columns:
+        - name: cont_conta_contabil
+          description: codigo da conta contabil
+          ##Removido temporariamente enquanto os imports dos arquivos via upload estão gerando erros
+          #tests:
+          #  - not_null
+
+        - name: cont_descricao_conta_contabil
+          description: Descricao conta contabil
+          ##Removido temporariamente enquanto os imports dos arquivos via upload estão gerando erros
+          #tests:
+          #  - not_null
+
+        - name: cont_data_lancamento
+          description: Data do lancamento contabil
+
+        - name: cont_centro_custo
+          description: Codigo do centro de custos
+
+        - name: cont_descricao_custo
+          description: Descricao centro de custos
+
+        - name: cont_empresa
+          description: Empresa
+
+        - name: cont_filial
+          description: Filial
+
+        - name: cont_historico
+          description: Historico do lancamento
+
+        - name: cont_historico_alice
+          description: Historico extendido
+
+        - name: cont_moeda
+          description: Moeda do lancamento
+
+        - name: cont_numero_documento
+          description: Numero do documento contabil
+
+        - name: cont_valor
+          description: Valor do lancamento contabil
+
+        - name: financ_item_contabil
+          description: Codigo do item contabil
+
+        - name: financ_nome_fornecedor
+          description: Nome do fornecedor
+
+        - name: financ_data_do_documento
+          description: Data de lancamento no financeiro
+
+        - name: financ_data_de_vencimento
+          description: Data de vencimento financeiro
+
+        - name: financ_data_de_pagamento
+          description: Data de pagamento financeiro
+
+        - name: interno_codigo_lp
+          description: codigo do lancamento padrao contabil
+
+        - name: interno_lancamento_manual
+          description: Identificador de lancamento contabil manual ou automatico
+
+        - name: interno_linha
+          description: Linha do lancamento contabil
+
+        - name: interno_lote
+          description: Lote do lancamento contabil
+
+        - name: interno_origem
+          description: Origem do lancamento contabil
+
+        - name: interno_produto
+          description: Codigo do produto
+
+        - name: interno_rotina
+          description: Codigo da rotina que gerou o lancamento
+
+        - name: interno_sublote
+          description: Codigo do sublote contabil
+
+        - name: interno_tipo_lancamento
+          description: Tipo do lancamento contabil
+
+        - name: interno_usuario_lancamento
+          description: Usuario que fez o lancamento
+
+        - name: receita_mensalidade
+          description: Codigo da mensalidade
+
+        - name: receita_cpf_cnpj_membro
+          description: Codigo de identificacao do membro cpf ou cnpj
+
+        - name: receita_resp_fin
+          description: Responsavel financeiro
+
+        - name: receita_tipo_lancamento_alice
+          description: Identificador de lancamento de receita alice
+
+        - name: dados_pk
+          description: Id primary key
+
+        - name: dados_id_emp
+          description: Dados de identificacao da empresa
+
+        - name: dados_id_tabela
+          description: Dados de identificacao da tabela
+
+        - name: financ_numtit
+          description: Numero de titulo financeiro
+
+        - name: financ_tipo
+          description: Tipo de titulo financeiro
+
+        - name: financ_natureza
+          description: Natureza do titulo
+
+        - name: financ_codfornecedor
+          description: Codigo de fornecedor do titulo
+
+        - name: financ_cpfcnpj
+          description: Codigo de cpf ou cnpj do fornecedor
+
+        - name: financ_emissao
+          description: Data de emissao do titulo
+
+        - name: financ_valortitulo
+          description: Valor do titulo financeiro
+
+        - name: financ_iss
+          description: Valor de ISS
+
+        - name: financ_irrf
+          description: Valor de irrf
+
+        - name: financ_ultmovimen
+          description: Ultima movimentacao financeira
+
+        - name: financ_saldo
+          description: Saldo do Titulo
+
+        - name: financ_desconto
+          description: Desconto do titulo
+
+        - name: financ_multa
+          description: Multa do titulo
+
+        - name: financ_juros
+          description: Juros do titulo
+
+        - name: financ_valliqbaixa
+          description: Valor liquido baixa
+
+        - name: financ_venctorig
+          description: Vencimento original do titulo
+
+        - name: financ_inss
+          description: Valor de inss
+
+        - name: financ_datalib
+          description: Data liberacao financeiro
+
+        - name: financ_titulopai
+          description: Titulo pai financeiro
+
+        - name: financ_numbordero
+          description: Numero do bordero
+
+        - name: financ_saldotit
+          description: Status
+
+        - name: cont_tipo_saldo
+          description: Tipo do saldo contabil
+
+        - name: cont_data_banco
+          description: Data banco
+
+  - name: razao_alice_ben
+    description: 'Descrição da Tabela'
+    meta:
+      owner: david.ferreira
+      maturity_level: low
+    columns:
+        - name: cont_conta_contabil
+          description: codigo da conta contabil
+          tests:
+            - not_null
+
+        - name: cont_descricao_conta_contabil
+          description: Descricao conta contabil
+          tests:
+            - not_null
+
+        - name: cont_data_lancamento
+          description: Data do lancamento contabil
+
+        - name: cont_centro_custo
+          description: Codigo do centro de custos
+
+        - name: cont_descricao_custo
+          description: Descricao centro de custos
+
+        - name: cont_empresa
+          description: Empresa
+
+        - name: cont_filial
+          description: Filial
+
+        - name: cont_historico
+          description: Historico do lancamento
+
+        - name: cont_historico_alice
+          description: Historico extendido
+
+        - name: cont_moeda
+          description: Moeda do lancamento
+
+        - name: cont_numero_documento
+          description: Numero do documento contabil
+
+        - name: cont_valor
+          description: Valor do lancamento contabil
+
+        - name: financ_item_contabil
+          description: Codigo do item contabil
+
+        - name: financ_nome_fornecedor
+          description: Nome do fornecedor
+
+        - name: financ_data_do_documento
+          description: Data de lancamento no financeiro
+
+        - name: financ_data_de_vencimento
+          description: Data de vencimento financeiro
+
+        - name: financ_data_de_pagamento
+          description: Data de pagamento financeiro
+
+        - name: interno_codigo_lp
+          description: codigo do lancamento padrao contabil
+
+        - name: interno_lancamento_manual
+          description: Identificador de lancamento contabil manual ou automatico
+
+        - name: interno_linha
+          description: Linha do lancamento contabil
+
+        - name: interno_lote
+          description: Lote do lancamento contabil
+
+        - name: interno_origem
+          description: Origem do lancamento contabil
+
+        - name: interno_produto
+          description: Codigo do produto
+
+        - name: interno_rotina
+          description: Codigo da rotina que gerou o lancamento
+
+        - name: interno_sublote
+          description: Codigo do sublote contabil
+
+        - name: interno_tipo_lancamento
+          description: Tipo do lancamento contabil
+
+        - name: interno_usuario_lancamento
+          description: Usuario que fez o lancamento
+
+        - name: receita_mensalidade
+          description: Codigo da mensalidade
+
+        - name: receita_cpf_cnpj_membro
+          description: Codigo de identificacao do membro cpf ou cnpj
+
+        - name: receita_resp_fin
+          description: Responsavel financeiro
+
+        - name: receita_tipo_lancamento_alice
+          description: Identificador de lancamento de receita alice
+
+        - name: dados_pk
+          description: Id primary key
+
+        - name: dados_id_emp
+          description: Dados de identificacao da empresa
+
+        - name: dados_id_tabela
+          description: Dados de identificacao da tabela
+
+        - name: financ_numtit
+          description: Numero de titulo financeiro
+
+        - name: financ_tipo
+          description: Tipo de titulo financeiro
+
+        - name: financ_natureza
+          description: Natureza do titulo
+
+        - name: financ_codfornecedor
+          description: Codigo de fornecedor do titulo
+
+        - name: financ_cpfcnpj
+          description: Codigo de cpf ou cnpj do fornecedor
+
+        - name: financ_emissao
+          description: Data de emissao do titulo
+
+        - name: financ_valortitulo
+          description: Valor do titulo financeiro
+
+        - name: financ_iss
+          description: Valor de ISS
+
+        - name: financ_irrf
+          description: Valor de irrf
+
+        - name: financ_ultmovimen
+          description: Ultima movimentacao financeira
+
+        - name: financ_saldo
+          description: Saldo do Titulo
+
+        - name: financ_desconto
+          description: Desconto do titulo
+
+        - name: financ_multa
+          description: Multa do titulo
+
+        - name: financ_juros
+          description: Juros do titulo
+
+        - name: financ_valliqbaixa
+          description: Valor liquido baixa
+
+        - name: financ_venctorig
+          description: Vencimento original do titulo
+
+        - name: financ_inss
+          description: Valor de inss
+
+        - name: financ_datalib
+          description: Data liberacao financeiro
+
+        - name: financ_titulopai
+          description: Titulo pai financeiro
+
+        - name: financ_numbordero
+          description: Numero do bordero
+
+        - name: financ_saldotit
+          description: Status
+
+        - name: cont_tipo_saldo
+          description: Tipo do saldo contabil
+
+        - name: cont_data_banco
+          description: Data banco
+
+  - name: razao_alice_par
+    description: Descrição da Tabela
+    meta:
+      owner: david.ferreira
+      maturity_level: low
+    columns:
+        - name: cont_conta_contabil
+          description: codigo da conta contabil
+          tests:
+            - not_null
+
+        - name: cont_descricao_conta_contabil
+          description: Descricao conta contabil
+          tests:
+            - not_null
+
+        - name: cont_data_lancamento
+          description: Data do lancamento contabil
+
+        - name: cont_centro_custo
+          description: Codigo do centro de custos
+
+        - name: cont_descricao_custo
+          description: Descricao centro de custos
+
+        - name: cont_empresa
+          description: Empresa
+
+        - name: cont_filial
+          description: Filial
+
+        - name: cont_historico
+          description: Historico do lancamento
+
+        - name: cont_historico_alice
+          description: Historico extendido
+
+        - name: cont_moeda
+          description: Moeda do lancamento
+
+        - name: cont_numero_documento
+          description: Numero do documento contabil
+
+        - name: cont_valor
+          description: Valor do lancamento contabil
+
+        - name: financ_item_contabil
+          description: Codigo do item contabil
+
+        - name: financ_nome_fornecedor
+          description: Nome do fornecedor
+
+        - name: financ_data_do_documento
+          description: Data de lancamento no financeiro
+
+        - name: financ_data_de_vencimento
+          description: Data de vencimento financeiro
+
+        - name: financ_data_de_pagamento
+          description: Data de pagamento financeiro
+
+        - name: interno_codigo_lp
+          description: codigo do lancamento padrao contabil
+
+        - name: interno_lancamento_manual
+          description: Identificador de lancamento contabil manual ou automatico
+
+        - name: interno_linha
+          description: Linha do lancamento contabil
+
+        - name: interno_lote
+          description: Lote do lancamento contabil
+
+        - name: interno_origem
+          description: Origem do lancamento contabil
+
+        - name: interno_produto
+          description: Codigo do produto
+
+        - name: interno_rotina
+          description: Codigo da rotina que gerou o lancamento
+
+        - name: interno_sublote
+          description: Codigo do sublote contabil
+
+        - name: interno_tipo_lancamento
+          description: Tipo do lancamento contabil
+
+        - name: interno_usuario_lancamento
+          description: Usuario que fez o lancamento
+
+        - name: receita_mensalidade
+          description: Codigo da mensalidade
+
+        - name: receita_cpf_cnpj_membro
+          description: Codigo de identificacao do membro cpf ou cnpj
+
+        - name: receita_resp_fin
+          description: Responsavel financeiro
+
+        - name: receita_tipo_lancamento_alice
+          description: Identificador de lancamento de receita alice
+
+        - name: dados_pk
+          description: Id primary key
+
+        - name: dados_id_emp
+          description: Dados de identificacao da empresa
+
+        - name: dados_id_tabela
+          description: Dados de identificacao da tabela
+
+        - name: financ_numtit
+          description: Numero de titulo financeiro
+
+        - name: financ_tipo
+          description: Tipo de titulo financeiro
+
+        - name: financ_natureza
+          description: Natureza do titulo
+
+        - name: financ_codfornecedor
+          description: Codigo de fornecedor do titulo
+
+        - name: financ_cpfcnpj
+          description: Codigo de cpf ou cnpj do fornecedor
+
+        - name: financ_emissao
+          description: Data de emissao do titulo
+
+        - name: financ_valortitulo
+          description: Valor do titulo financeiro
+
+        - name: financ_iss
+          description: Valor de ISS
+
+        - name: financ_irrf
+          description: Valor de irrf
+
+        - name: financ_ultmovimen
+          description: Ultima movimentacao financeira
+
+        - name: financ_saldo
+          description: Saldo do Titulo
+
+        - name: financ_desconto
+          description: Desconto do titulo
+
+        - name: financ_multa
+          description: Multa do titulo
+
+        - name: financ_juros
+          description: Juros do titulo
+
+        - name: financ_valliqbaixa
+          description: Valor liquido baixa
+
+        - name: financ_venctorig
+          description: Vencimento original do titulo
+
+        - name: financ_inss
+          description: Valor de inss
+
+        - name: financ_datalib
+          description: Data liberacao financeiro
+
+        - name: financ_titulopai
+          description: Titulo pai financeiro
+
+        - name: financ_numbordero
+          description: Numero do bordero
+
+        - name: financ_saldotit
+          description: Status
+
+        - name: cont_tipo_saldo
+          description: Tipo do saldo contabil
+
+        - name: cont_data_banco
+          description: Data banco
+
+  - name: razao_alice_sm
+    description: Descrição da Tabela
+    meta:
+      owner: david.ferreira
+      maturity_level: low
+    columns:
+        - name: cont_conta_contabil
+          description: codigo da conta contabil
+          tests:
+            - not_null
+
+        - name: cont_descricao_conta_contabil
+          description: Descricao conta contabil
+          tests:
+            - not_null
+
+        - name: cont_data_lancamento
+          description: Data do lancamento contabil
+
+        - name: cont_centro_custo
+          description: Codigo do centro de custos
+
+        - name: cont_descricao_custo
+          description: Descricao centro de custos
+
+        - name: cont_empresa
+          description: Empresa
+
+        - name: cont_filial
+          description: Filial
+
+        - name: cont_historico
+          description: Historico do lancamento
+
+        - name: cont_historico_alice
+          description: Historico extendido
+
+        - name: cont_moeda
+          description: Moeda do lancamento
+
+        - name: cont_numero_documento
+          description: Numero do documento contabil
+
+        - name: cont_valor
+          description: Valor do lancamento contabil
+
+        - name: financ_item_contabil
+          description: Codigo do item contabil
+
+        - name: financ_nome_fornecedor
+          description: Nome do fornecedor
+
+        - name: financ_data_do_documento
+          description: Data de lancamento no financeiro
+
+        - name: financ_data_de_vencimento
+          description: Data de vencimento financeiro
+
+        - name: financ_data_de_pagamento
+          description: Data de pagamento financeiro
+
+        - name: interno_codigo_lp
+          description: codigo do lancamento padrao contabil
+
+        - name: interno_lancamento_manual
+          description: Identificador de lancamento contabil manual ou automatico
+
+        - name: interno_linha
+          description: Linha do lancamento contabil
+
+        - name: interno_lote
+          description: Lote do lancamento contabil
+
+        - name: interno_origem
+          description: Origem do lancamento contabil
+
+        - name: interno_produto
+          description: Codigo do produto
+
+        - name: interno_rotina
+          description: Codigo da rotina que gerou o lancamento
+
+        - name: interno_sublote
+          description: Codigo do sublote contabil
+
+        - name: interno_tipo_lancamento
+          description: Tipo do lancamento contabil
+
+        - name: interno_usuario_lancamento
+          description: Usuario que fez o lancamento
+
+        - name: receita_mensalidade
+          description: Codigo da mensalidade
+
+        - name: receita_cpf_cnpj_membro
+          description: Codigo de identificacao do membro cpf ou cnpj
+
+        - name: receita_resp_fin
+          description: Responsavel financeiro
+
+        - name: receita_tipo_lancamento_alice
+          description: Identificador de lancamento de receita alice
+
+        - name: dados_pk
+          description: Id primary key
+
+        - name: dados_id_emp
+          description: Dados de identificacao da empresa
+
+        - name: dados_id_tabela
+          description: Dados de identificacao da tabela
+
+        - name: financ_numtit
+          description: Numero de titulo financeiro
+
+        - name: financ_tipo
+          description: Tipo de titulo financeiro
+
+        - name: financ_natureza
+          description: Natureza do titulo
+
+        - name: financ_codfornecedor
+          description: Codigo de fornecedor do titulo
+
+        - name: financ_cpfcnpj
+          description: Codigo de cpf ou cnpj do fornecedor
+
+        - name: financ_emissao
+          description: Data de emissao do titulo
+
+        - name: financ_valortitulo
+          description: Valor do titulo financeiro
+
+        - name: financ_iss
+          description: Valor de ISS
+
+        - name: financ_irrf
+          description: Valor de irrf
+
+        - name: financ_ultmovimen
+          description: Ultima movimentacao financeira
+
+        - name: financ_saldo
+          description: Saldo do Titulo
+
+        - name: financ_desconto
+          description: Desconto do titulo
+
+        - name: financ_multa
+          description: Multa do titulo
+
+        - name: financ_juros
+          description: Juros do titulo
+
+        - name: financ_valliqbaixa
+          description: Valor liquido baixa
+
+        - name: financ_venctorig
+          description: Vencimento original do titulo
+
+        - name: financ_inss
+          description: Valor de inss
+
+        - name: financ_datalib
+          description: Data liberacao financeiro
+
+        - name: financ_titulopai
+          description: Titulo pai financeiro
+
+        - name: financ_numbordero
+          description: Numero do bordero
+
+        - name: financ_saldotit
+          description: Status
+
+        - name: cont_tipo_saldo
+          description: Tipo do saldo contabil
+
+        - name: cont_data_banco
+          description: Data banco
+
+  - name: razao_alice_tec
+    description: Descrição da Tabela
+    meta:
+      owner: david.ferreira
+      maturity_level: low
+    columns:
+        - name: cont_conta_contabil
+          description: codigo da conta contabil
+          tests:
+            - not_null
+
+        - name: cont_descricao_conta_contabil
+          description: Descricao conta contabil
+          tests:
+            - not_null
+
+        - name: cont_data_lancamento
+          description: Data do lancamento contabil
+
+        - name: cont_centro_custo
+          description: Codigo do centro de custos
+
+        - name: cont_descricao_custo
+          description: Descricao centro de custos
+
+        - name: cont_empresa
+          description: Empresa
+
+        - name: cont_filial
+          description: Filial
+
+        - name: cont_historico
+          description: Historico do lancamento
+
+        - name: cont_historico_alice
+          description: Historico extendido
+
+        - name: cont_moeda
+          description: Moeda do lancamento
+
+        - name: cont_numero_documento
+          description: Numero do documento contabil
+
+        - name: cont_valor
+          description: Valor do lancamento contabil
+
+        - name: financ_item_contabil
+          description: Codigo do item contabil
+
+        - name: financ_nome_fornecedor
+          description: Nome do fornecedor
+
+        - name: financ_data_do_documento
+          description: Data de lancamento no financeiro
+
+        - name: financ_data_de_vencimento
+          description: Data de vencimento financeiro
+
+        - name: financ_data_de_pagamento
+          description: Data de pagamento financeiro
+
+        - name: interno_codigo_lp
+          description: codigo do lancamento padrao contabil
+
+        - name: interno_lancamento_manual
+          description: Identificador de lancamento contabil manual ou automatico
+
+        - name: interno_linha
+          description: Linha do lancamento contabil
+
+        - name: interno_lote
+          description: Lote do lancamento contabil
+
+        - name: interno_origem
+          description: Origem do lancamento contabil
+
+        - name: interno_produto
+          description: Codigo do produto
+
+        - name: interno_rotina
+          description: Codigo da rotina que gerou o lancamento
+
+        - name: interno_sublote
+          description: Codigo do sublote contabil
+
+        - name: interno_tipo_lancamento
+          description: Tipo do lancamento contabil
+
+        - name: interno_usuario_lancamento
+          description: Usuario que fez o lancamento
+
+        - name: receita_mensalidade
+          description: Codigo da mensalidade
+
+        - name: receita_cpf_cnpj_membro
+          description: Codigo de identificacao do membro cpf ou cnpj
+
+        - name: receita_resp_fin
+          description: Responsavel financeiro
+
+        - name: receita_tipo_lancamento_alice
+          description: Identificador de lancamento de receita alice
+
+        - name: dados_pk
+          description: Id primary key
+
+        - name: dados_id_emp
+          description: Dados de identificacao da empresa
+
+        - name: dados_id_tabela
+          description: Dados de identificacao da tabela
+
+        - name: financ_numtit
+          description: Numero de titulo financeiro
+
+        - name: financ_tipo
+          description: Tipo de titulo financeiro
+
+        - name: financ_natureza
+          description: Natureza do titulo
+
+        - name: financ_codfornecedor
+          description: Codigo de fornecedor do titulo
+
+        - name: financ_cpfcnpj
+          description: Codigo de cpf ou cnpj do fornecedor
+
+        - name: financ_emissao
+          description: Data de emissao do titulo
+
+        - name: financ_valortitulo
+          description: Valor do titulo financeiro
+
+        - name: financ_iss
+          description: Valor de ISS
+
+        - name: financ_irrf
+          description: Valor de irrf
+
+        - name: financ_ultmovimen
+          description: Ultima movimentacao financeira
+
+        - name: financ_saldo
+          description: Saldo do Titulo
+
+        - name: financ_desconto
+          description: Desconto do titulo
+
+        - name: financ_multa
+          description: Multa do titulo
+
+        - name: financ_juros
+          description: Juros do titulo
+
+        - name: financ_valliqbaixa
+          description: Valor liquido baixa
+
+        - name: financ_venctorig
+          description: Vencimento original do titulo
+
+        - name: financ_inss
+          description: Valor de inss
+
+        - name: financ_datalib
+          description: Data liberacao financeiro
+
+        - name: financ_titulopai
+          description: Titulo pai financeiro
+
+        - name: financ_numbordero
+          description: Numero do bordero
+
+        - name: financ_saldotit
+          description: Status
+
+        - name: cont_tipo_saldo
+          description: Tipo do saldo contabil
+
+        - name: cont_data_banco
+          description: Data banco
