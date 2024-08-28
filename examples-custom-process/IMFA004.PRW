@@ -29,6 +29,8 @@ Private cTPNegAF8 	:=""
 Private cCdCliAF8	:=""
 Default cProjeto 	:=""
 
+//teste
+
 If Empty(cProjeto)
 	AjustaSX1("IMFA004")
 	If Pergunte("IMFA004")
@@ -98,7 +100,7 @@ Endif
 RestArea(aArea)
 Return
 //-------------------------------------------------------------------
-/*/A031Open - Cria ou monta o arquivo que será utilizado no
+/*/A031Open - Cria ou monta o arquivo que serï¿½ utilizado no
 gerencial
 @Data            08/10/2012
 @Parametros      Nenhum
@@ -834,7 +836,7 @@ If AF8->(DbSeek(xFilial("AF8")+AvKey(_cCodPrj,"AF8_PROJET")))
 			_oDlgPln:lEscClose:=.F.
 			ACTIVATE MSDIALOG _oDlgPln CENTERED
 		Else
-			Aviso("Importacao EDT","O projeto não possui EDT Filhas para a importacao",{"OK"})
+			Aviso("Importacao EDT","O projeto nï¿½o possui EDT Filhas para a importacao",{"OK"})
 		Endif
 		
 	Endif
@@ -872,12 +874,12 @@ If AF8->(DbSeek(xFilial("AF8")+AvKey(_cCodPrj,"AF8_PROJET")))
 					Exit
 				ElseIf 	"FIM DA PLANILHA"$UPPER(_CLINHA)//Primeira linha deve conter o descritivo da unidade de negocio da EVENTOS
 					Exit
-				ElseIF 	";TITULO;"$UPPER(_CLINHA) .Or. ";TÍTULO;"$UPPER(_CLINHA) .Or. ";SUB-TITULO;"$UPPER(_CLINHA) .Or. ";SUB-TÍTULO;"$UPPER(_CLINHA) .Or. ";PRODUTO;"$UPPER(_CLINHA)
-					If 	";TITULO;"$UPPER(_CLINHA) .Or. ";TÍTULO;"$UPPER(_CLINHA)
+				ElseIF 	";TITULO;"$UPPER(_CLINHA) .Or. ";Tï¿½TULO;"$UPPER(_CLINHA) .Or. ";SUB-TITULO;"$UPPER(_CLINHA) .Or. ";SUB-Tï¿½TULO;"$UPPER(_CLINHA) .Or. ";PRODUTO;"$UPPER(_CLINHA)
+					If 	";TITULO;"$UPPER(_CLINHA) .Or. ";Tï¿½TULO;"$UPPER(_CLINHA)
 						_lTitulo:=.T.
-					ElseIf ";SUB-TITULO;"$UPPER(_CLINHA) .Or. ";SUB-TÍTULO;"$UPPER(_CLINHA)
+					ElseIf ";SUB-TITULO;"$UPPER(_CLINHA) .Or. ";SUB-Tï¿½TULO;"$UPPER(_CLINHA)
 						If !_lTitulo
-							Aviso("Atencao","O TITULO deve vir antes do SUBTITULO",{"Ok"})                                                                          ¦
+							Aviso("Atencao","O TITULO deve vir antes do SUBTITULO",{"Ok"})                                                                          ï¿½
 							Exit
 						Endif
 					ElseIf ";PRODUTO;"$UPPER(_CLINHA)
@@ -910,8 +912,8 @@ If AF8->(DbSeek(xFilial("AF8")+AvKey(_cCodPrj,"AF8_PROJET")))
 							Alert("Existem produto na Linha "+StrZero(_nLinha,3)+" com numero do Item em branco. Processo abortado!")
 							_lAbort:=.T.
 							Exit
-						ElseIf Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "TITULO" .Or. Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "TÍTULO" ;
-							.Or. Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "SUB-TITULO" .Or. Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "SUB-TÍTULO"
+						ElseIf Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "TITULO" .Or. Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "Tï¿½TULO" ;
+							.Or. Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "SUB-TITULO" .Or. Upper(Alltrim(_aTxt[Len(_aTxt)][04])) == "SUB-Tï¿½TULO"
 							Alert("Existem Titulo ou Sub-Titulo na Linha "+StrZero(_nLinha,3)+" com numero do Item em branco. Processo abortado!")
 							_lAbort:=.T.
 							
@@ -956,7 +958,7 @@ If AF8->(DbSeek(xFilial("AF8")+AvKey(_cCodPrj,"AF8_PROJET")))
 										ElseIf _nX==17
 											aAdd(_aTxt[Len(_aTxt)],"CONSIDERAR NA PLANILHA O LINK "+Alltrim(AF9->AF9_X_PLAN))
 										ElseIf _nX==18
-											aAdd(_aTxt[Len(_aTxt)],"Não relacionado na planilha o Link da Tarefa "+ALLTRIM(AF9->AF9_TAREFA)+"que possui Pedido")
+											aAdd(_aTxt[Len(_aTxt)],"Nï¿½o relacionado na planilha o Link da Tarefa "+ALLTRIM(AF9->AF9_TAREFA)+"que possui Pedido")
 										Else
 											aAdd(_aTxt[Len(_aTxt)],"-")
 										Endif
@@ -997,7 +999,7 @@ If AF8->(DbSeek(xFilial("AF8")+AvKey(_cCodPrj,"AF8_PROJET")))
 									ElseIf _nX==6
 										aAdd(_aTxt[Len(_aTxt)],"-")
 									ElseIf _nX==17
-										aAdd(_aTxt[Len(_aTxt)],"Numero do Pedido "+Alltrim((_cArqSC7)->C7_NUM)+ " não possui amarracao com planilha atual")
+										aAdd(_aTxt[Len(_aTxt)],"Numero do Pedido "+Alltrim((_cArqSC7)->C7_NUM)+ " nï¿½o possui amarracao com planilha atual")
 									ElseIf _nX==18
 										aAdd(_aTxt[Len(_aTxt)],"CONSIDERAR NA PLANILHA O LINK "+Alltrim((_cArqSC7)->C7_X_PLAN))
 									Else
@@ -1013,7 +1015,7 @@ If AF8->(DbSeek(xFilial("AF8")+AvKey(_cCodPrj,"AF8_PROJET")))
 								ElseIf _nX==6
 									aAdd(_aTxt[Len(_aTxt)],"-")
 								ElseIf _nX==17
-									aAdd(_aTxt[Len(_aTxt)],"Não existe link associado ao pedido "+Alltrim((_cArqSC7)->C7_NUM))
+									aAdd(_aTxt[Len(_aTxt)],"Nï¿½o existe link associado ao pedido "+Alltrim((_cArqSC7)->C7_NUM))
 								ElseIf _nX==18
 									aAdd(_aTxt[Len(_aTxt)],"LINK DO PEDIDO VAZIO. NECESSARIO EXCLUIR OU LINKAR O PEDIDO")
 								Else
@@ -1077,7 +1079,7 @@ If AF8->(DbSeek(xFilial("AF8")+AvKey(_cCodPrj,"AF8_PROJET")))
 												_lCons:=.T.
 											Endif
 										Else
-											If Upper(Alltrim(_aTxt[_nX][04]))=="TITULO" .Or. Upper(Alltrim(_aTxt[_nX][04]))=="TÍTULO"
+											If Upper(Alltrim(_aTxt[_nX][04]))=="TITULO" .Or. Upper(Alltrim(_aTxt[_nX][04]))=="Tï¿½TULO"
 												_aTXT[_nX][17]:="Definir uma nova numeracao no link do titulo"
 												_aTXT[_nX][18]:="Link relacionado a Tarefa "+ALLTRIM(AF9->AF9_TAREFA)
 												_lCons:=.T.
@@ -1277,7 +1279,7 @@ If Len(_aImport) >0
 		//Se estiver revisao em aberto Finaliza e Abre uma Nova Revisao, caso contrario efetua somente a abertura. Gravacao do Historico
 		//===============================================================================================================================================
 		IF AF8->AF8_STATUS == '2'//Projeto em Revisao
-			_cMsgImp   :="Revisao por causa da importação do arquivo Excel no dia "+DtoC(dDataBase)+" as "+Time()+" pelo Usuario "+Alltrim(UsrRetName(__cUserID))+"."+Chr(13)+Chr(10)
+			_cMsgImp   :="Revisao por causa da importaï¿½ï¿½o do arquivo Excel no dia "+DtoC(dDataBase)+" as "+Time()+" pelo Usuario "+Alltrim(UsrRetName(__cUserID))+"."+Chr(13)+Chr(10)
 			DbSelectArea("AFE")
 			AFE->(DbSetOrder(1))
 			AFE->(DbGoTop())
@@ -1324,7 +1326,7 @@ If Len(_aImport) >0
 			
 			_cLink	:= Alltrim(_aImport[_nX][05])
 			
-			If Upper(alltrim(_aImport[_nX][04])) == "TITULO" .Or. Upper(alltrim(_aImport[_nX][04]))=="TÍTULO" // EDT
+			If Upper(alltrim(_aImport[_nX][04])) == "TITULO" .Or. Upper(alltrim(_aImport[_nX][04]))=="Tï¿½TULO" // EDT
 				
 				DbSelectArea("AFC")
 				AFC->(DbSetOrder(1)) // Projeto + Revisao + EDT
@@ -1371,7 +1373,7 @@ If Len(_aImport) >0
 				AFC->AFC_X_GEST := IIF(EMPTY(AF8->AF8_X_GEST),"019",AF8->AF8_X_GEST)
 				AFC->(MsUnlock())
 				
-			ElseIf Upper(alltrim(_aImport[_nX][04])) == "SUB-TITULO" .Or. Upper(alltrim(_aImport[_nX][04]))=="SUB-TÍTULO"
+			ElseIf Upper(alltrim(_aImport[_nX][04])) == "SUB-TITULO" .Or. Upper(alltrim(_aImport[_nX][04]))=="SUB-Tï¿½TULO"
 				_cEdtNiv4	:=Soma1(_cEdtNiv4)
 				_cTarNiv 	:="00"
 				_cNivel  	:=Iif(Empty(_cEDTImp),"003","004")
@@ -1417,15 +1419,15 @@ If Len(_aImport) >0
 					Endif
 				Endif
 				
-				If Upper(Alltrim(_aImport[_nX][2])) == Upper("Técnica")
+				If Upper(Alltrim(_aImport[_nX][2])) == Upper("Tï¿½cnica")
 					_aImport[_nX][2] := "TECNICA"
-				ElseIf Upper(Alltrim(_aImport[_nX][2])) == Upper("Logística")
+				ElseIf Upper(Alltrim(_aImport[_nX][2])) == Upper("Logï¿½stica")
 					_aImport[_nX][2] := "LOGISTICA"
-				ElseIf Upper(Alltrim(_aImport[_nX][2])) == Upper("Gráfica")
+				ElseIf Upper(Alltrim(_aImport[_nX][2])) == Upper("Grï¿½fica")
 					_aImport[_nX][2] := "GRAFICA"
 				ElseIf Upper(Alltrim(_aImport[_nX][2])) == Upper("Excutiva")
 					_aImport[_nX][2] := "EXECUTIVA"
-				ElseIf Upper(Alltrim(_aImport[_nX][2])) == Upper("	SEV. PRÓPRIOS") .OR.  Upper(Alltrim(_aImport[_nX][2])) == Upper("	SEV. PROPRIOS") .OR.  Upper(Alltrim(_aImport[_nX][2])) == Upper("	SERV. PRÓPRIOS") .OR.  Upper(Alltrim(_aImport[_nX][2])) == Upper("	SERV. PROPRIOS")
+				ElseIf Upper(Alltrim(_aImport[_nX][2])) == Upper("	SEV. PRï¿½PRIOS") .OR.  Upper(Alltrim(_aImport[_nX][2])) == Upper("	SEV. PROPRIOS") .OR.  Upper(Alltrim(_aImport[_nX][2])) == Upper("	SERV. PRï¿½PRIOS") .OR.  Upper(Alltrim(_aImport[_nX][2])) == Upper("	SERV. PROPRIOS")
 					_aImport[_nX][2] := "SERVICOS PROPRIOS"
 				Endif
 				
@@ -1684,7 +1686,7 @@ Funcao para efetuar a atualizacao da Tarefa na base de dados
 @aRetorno
 @author		Marcos Kato
 @since
-@obs		A atualizacao não trata por revisao. Considera apenas
+@obs		A atualizacao nï¿½o trata por revisao. Considera apenas
 Projeto e Tarefa
 @uso        UpLoad de Planilha Capo(generico para grupo TV1).
 /*/
@@ -1816,9 +1818,9 @@ Local _lUpDate		:= .F.
 
 
 /*/
-ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-³           Grupo  Ordem Pergunta Portugues  Pergunta Espanhol    Pergunta Ingles       Variavel Tipo Tamanho Decimal Presel GSC Valid        Var01      Def01       DefSPA1     DefEng1    Cnt01 Var02 Def02       DefSpa2      DefEng2      Cnt02 Var03 Def03 DefSpa3 DefEng3 Cnt03 Var04 Def04 DefSpa4 DefEng4 Cnt04 Var05 Def05 DefSpa5 DefEng5 Cnt05 XF3 GrgSxg cPyme aHelpPor aHelpEng aHelpSpa cHelp      ³
-ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿
+ï¿½           Grupo  Ordem Pergunta Portugues  Pergunta Espanhol    Pergunta Ingles       Variavel Tipo Tamanho Decimal Presel GSC Valid        Var01      Def01       DefSPA1     DefEng1    Cnt01 Var02 Def02       DefSpa2      DefEng2      Cnt02 Var03 Def03 DefSpa3 DefEng3 Cnt03 Var04 Def04 DefSpa4 DefEng4 Cnt04 Var05 Def05 DefSpa5 DefEng5 Cnt05 XF3 GrgSxg cPyme aHelpPor aHelpEng aHelpSpa cHelp      ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 /*/
 _aHelpPor := _aHelpSpa := _aHelpEng := {"informe o projeto a ser",;
 "importado"}
